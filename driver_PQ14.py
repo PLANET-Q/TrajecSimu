@@ -15,12 +15,12 @@ from Scripts.interface import TrajecSimu_UI
 config_filename = 'Parameters_csv/PQ014_ver_01_11.csv'
 
 # create an instance
-mysim = TrajecSimu_UI(config_filename, 'izu')
+mysim = TrajecSimu_UI(config_filename, 'izu_sea')
 
 # ------------------------------------
 # run a single trajectory computation
 # ------------------------------------
-mysim.run_single()
+#mysim.run_single()
 
 # ------------------------------------
 # run a loop for landing point distribution
@@ -29,7 +29,7 @@ mysim.run_single()
 #         n_winddirec: number of wind directions
 #         max_windspeed: max. wind speed [m/s]
 #         windspeed_step: wind speed step [m/s]
-#mysim.run_loop(16, 8, 0.5)
+mysim.run_loop(4, 4, 1)
 
 # ------------------------------------
 # run an inverse design problem

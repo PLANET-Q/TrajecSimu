@@ -81,8 +81,8 @@ $wind_model, power-forecast-hydrid
 wind_model, power
 $wind_model, power-statistics-hybrid
 $ forecast scsv file
-forecast_csvname,wind_forecast_csv/interp_wind_20170821.csv
-statistics_filename, wind_parameters.json
+$forecast_csvname,wind_forecast_csv/interp_wind_20170821.csv
+$statistics_filename, wind_parameters.json
 
 $ ----------------------------
 $ engine parameters
