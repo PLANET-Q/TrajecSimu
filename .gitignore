@@ -4,3 +4,6 @@ Archive/
 *.DS_Store
 *.eps
 *.ipynb
+Thrust_curve_csv/*
+Parameters_csv/*
+driver_*.py
