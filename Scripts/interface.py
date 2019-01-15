@@ -3,7 +3,7 @@
 """
 Created on Thu Jan 18 12:53:42 2018
 
-@author: shugo
+@author: shugo, kyoko
 """
 
 import numpy as np
@@ -18,7 +18,7 @@ from Scripts.postprocess import PostProcess_single, PostProcess_dist, JudgeInsid
 class TrajecSimu_UI():
     # class for trajectory simulation interface
 
-    def __init__(self, csv_filename, loc='noshiro_sea'):
+    def __init__(self, csv_filename, loc='izu_sea'):
         # =============================================
         # This method is called when an instance is created
         #
@@ -191,6 +191,20 @@ class TrajecSimu_UI():
             permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
             permitted_area_for_bal["outside_centers"]= tmp_centers
             permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
+
+
+        elif self.launch_location == 'izu_sea':
+            # permitted range for Izu sea (2018)
+            permitted_area_for_para['inside_center'] = post_dist.xy_center
+            permitted_area_for_para['inside_radius'] = post_dist.hachiya_radius
+            permitted_area_for_para["over_line"]     = post_dist.hachiya_line
+            permitted_area_for_bal['inside_center']  = post_dist.xy_center
+            permitted_area_for_bal['inside_radius']  = post_dist.hachiya_radius
+            permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
+            permitted_area_for_bal["outside_centers"]= tmp_centers
+            permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
+
+
         elif self.launch_location == 'izu':
             # premitted range for Izu dessert (2018)
             permitted_area_for_para['range']         = post_dist.xy_range
@@ -200,7 +214,7 @@ class TrajecSimu_UI():
             permitted_area_for_bal['outside_centers']= tmp_centers
             permitted_area_for_bal['outside_radius'] = post_dist.lim_radius
         else:
-            raise NotImplementedError('The launch site is not implemented. "Noshiro_sea" or "izu" are currently available')
+            raise NotImplementedError('The launch site is not implemented. "Noshiro_sea" or "izu" or "izu_sea" are currently available')
         # END IF
 
         # -------------------------------
