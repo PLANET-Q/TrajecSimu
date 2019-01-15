@@ -98,7 +98,7 @@ class PostProcess_single():
             # plot dynamic pressure history
 
             # plot wind
-            self.plot_wind(alt_axis)
+            #self.plot_wind(alt_axis)
             # show all plots
             plt.show()
 
