@@ -930,7 +930,8 @@ class PostProcess_dist():
             img_origin = np.array([609, 510])   # TODO : compute by lat/long of launcher point
 
             #pixel2meter = (139.431463 - 139.41283)/1800.0 * lon2met
-            pixel2meter = 4.09836066
+            #pixel2meter = 4.09836066
+            pixel2meter = 4.79109585
 
             # Define image range
             img_left =   -1.0* img_origin[0] * pixel2meter
