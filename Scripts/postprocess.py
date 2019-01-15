@@ -1275,7 +1275,8 @@ class JudgeInside():
        # Judge under the line
         if line_flag2 == True:
 
-           if check_point[1] < self.over_line[0]*check_point[0]+self.over_line[1]:
+           if check_point[1] > self.over_line[0]*check_point[0]+self.over_line[1]:
+               print('Judge:False by over_line')
                judge_result = np.bool(False)
 
         #-------------------------------------------------------------
