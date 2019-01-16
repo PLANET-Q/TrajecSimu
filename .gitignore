@@ -6,4 +6,5 @@ Archive/
 *.ipynb
 Thrust_curve_csv/*
 Parameters_csv/*
+wind_forecast_csv/*
 driver_*.py
