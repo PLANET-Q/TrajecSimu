@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 from Scripts.trajectory_main import Trajec_run
 from Scripts.postprocess import PostProcess_single, PostProcess_dist, JudgeInside
-
+from Scripts.kmlplot import output_kml
+import json
 
 class TrajecSimu_UI():
     # class for trajectory simulation interface
@@ -173,6 +174,24 @@ class TrajecSimu_UI():
         elev_angle = self.myrocket.Params.elev_angle  # launcher elev angle
         post_dist.plot_sct(self.loc_bal,  wind_speed_array, elev_angle, 'Ballistic')   # plot ballistic scatter
         post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute')   # plot parachute scatter
+
+        # -------------------------------
+        # output scatter map to kml
+        # -------------------------------
+        output_kml(
+            self.loc_bal,
+            post_dist.point_rail,
+            wind_speed_array,
+            post_dist.regulations,
+            'results/plot_bal.kml'
+            )
+        output_kml(
+            self.loc_para,
+            post_dist.point_rail,
+            wind_speed_array,
+            post_dist.regulations,
+            'results/plot_para.kml'
+            )
 
         # -------------------------------
         #  define permitted ranges
