@@ -67,7 +67,7 @@ def output_kml(drop_points, rail_coord, wind_speeds, regulations, filename):
             line = kml.newlinestring(name=name)
             line.coords = [point1, point2]
             # Linecolor: Yellow
-            line.style.linestyle.color = 'd7ff'
+            line.style.linestyle.color = '00d7ff'
             line.style.linestyle.width = 4
 
         else:
