@@ -622,7 +622,7 @@ class PostProcess_dist():
         with open('location_parameters/izu.json', 'r') as f:
             self.regulations = json.load(f)
         for reg in self.regulations:
-            if reg['name'] == 'point_rail':
+            if reg['name'] == 'rail':
                 self.point_rail = reg['center']
                 break
         # -----------------------------------
@@ -712,7 +712,7 @@ class PostProcess_dist():
         with open('location_parameters/izu_sea.json', 'r') as f:
             self.regulations = json.load(f)
         for reg in self.regulations:
-            if reg['name'] == 'point_rail':
+            if reg['name'] == 'rail':
                 self.point_rail = reg['center']
                 break
 

@@ -1,6 +1,6 @@
 [
   {
-    "name":"point_rail",
+    "name":"rail",
     "type":"circle",
     "center":[34.679730, 139.438373],
     "radius":50.0
