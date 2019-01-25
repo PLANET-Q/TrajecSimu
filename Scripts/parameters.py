@@ -203,6 +203,12 @@ class Parameters():
                 self.wind_statistics_filename\
                     = self.params_dict['statistics_filename']
                 self.setup_statistics()
+
+            if 'error_stat_filename' in self.params_dict:
+                self.wind_error_statistics_filename\
+                    = self.params_dict['error_stat_filename']
+                self.setup_error_statistics()
+
             # earth gravity
             self.grav = np.array([0., 0., -9.81])    # in fixed coordinate
 
@@ -588,6 +594,8 @@ class Parameters():
             self.wind = self.wind_forecast
         elif self.wind_model == 'statistics':
             self.wind = self.wind_statistics
+        elif self.wind_model == 'error-statistics':
+            self.wind = self.wind_error_statistics
         elif self.wind_model == 'power-forecast-hybrid':
             # -------------------
             # power law and forecast hybrid model
@@ -666,6 +674,31 @@ class Parameters():
                 self.wind = wind_power_statistics
         else:
             raise ParameterDefineError('wind model definition is wrong.')
+
+    def setup_error_statistics(self):
+        try:
+            with open(self.wind_error_statistics_filename, 'r') as f:
+                params = json.load(f)
+        except:
+            raise FileNotFoundError(' Wind statistics data file not found')
+
+        print('statistics parameterfile loaded')
+        alt = params['alt_axis']
+        forecast_wind_array = self.wind_forecast(alt)[:2].T
+        print('wind forecast: ', forecast_wind_array)
+        n_alt = len(alt)
+        wind_tmp = getStatWindVector(
+                        statistics_parameters=params,
+                        wind_direction_deg=self.wind_direction,
+                        wind_std=forecast_wind_array
+                        )
+
+        wind_vec_stat = np.c_[wind_tmp[0], wind_tmp[1], [0] * n_alt].T
+        # setup wind_statistics interpolation function
+        self.wind_error_statistics = interpolate.interp1d(
+                                alt,
+                                wind_vec_stat,
+                                fill_value='extrapolate')
 
     def setup_forcast(self):
         try:
