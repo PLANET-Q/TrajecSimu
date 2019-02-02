@@ -60,15 +60,15 @@ def getAzimuthWindByEllipse(
     print('wind direction: ', wind_direction)
     if np.mod(wind_direction, np.pi) != 0.:
         alpha = sympy.cot(wind_direction)
-        print('alpha: ', alpha)
+        #print('alpha: ', alpha)
         expr = (V - std_wind[1]) - alpha * (U - std_wind[0])
     else:
         expr = (U - std_wind[0])
-    print(expr)
+    #print(expr)
     # expr3 = V - alpha * U
     t_solutions_tmp = sympy.solve(expr)
     t_solutions = [float(t_sol) for t_sol in t_solutions_tmp]
-    print('solutions: ', t_solutions)
+    #print('solutions: ', t_solutions)
 
     n_solutions = len(t_solutions)
     wind_tmp = np.zeros((n_solutions, 2))
@@ -76,8 +76,8 @@ def getAzimuthWindByEllipse(
         wind_tmp[i] = [
                         float(U.subs(t, t_solution)),
                         float(V.subs(t, t_solution))]
-        print('U(t=', t_solution, '): ', U.subs(t, t_solution))
-        print('V(t=', t_solution, '): ', V.subs(t, t_solution))
+        #print('U(t=', t_solution, '): ', U.subs(t, t_solution))
+        #print('V(t=', t_solution, '): ', V.subs(t, t_solution))
 
     az_wind_directions = np.arctan2(
                             -(wind_tmp.T[0] - std_wind[0]),
@@ -85,15 +85,15 @@ def getAzimuthWindByEllipse(
                             )
     direction_diff = np.round(az_wind_directions - wind_direction, 2)
     direction_diff = np.mod(direction_diff, 6.28)
-    print('direction diff', direction_diff)
+    #print('direction diff', direction_diff)
     mask = direction_diff == 0.
 
     if mask.any():
-        print('mask wind', wind_tmp[mask])
+        #print('mask wind', wind_tmp[mask])
         idx = np.argmax(LA.norm(wind_tmp[mask].T, axis=0))
         azimuth_wind = wind_tmp[mask][idx]
     else:
-        print('azimuth wind not found')
+        #print('azimuth wind not found')
         idx = np.argmin(LA.norm(wind_tmp.T, axis=0))
         azimuth_wind = wind_tmp[idx]
 
@@ -150,7 +150,7 @@ def getStatWindVector(
     # ----------------------------
     stat_wind_u = []
     stat_wind_v = []
-    print('X: ', wind_std)
+    # print('X: ', wind_std)
     for h in range(n_alt):
 
         # u,vが決まった時のdu,dvの条件付き正規分布の平均と共分散行列
@@ -163,7 +163,7 @@ def getStatWindVector(
             X=wind_std[h])
 
         scale, M, _ = getEllipseParameters(mu, sigma, alpha=0.99)
-        print('wind direction deg', wind_direction_deg)
+        # print('wind direction deg', wind_direction_deg)
         w = getAzimuthWindByEllipse(
                             mu + wind_std[h],
                             scale,

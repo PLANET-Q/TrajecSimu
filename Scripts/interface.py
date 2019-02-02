@@ -81,7 +81,14 @@ class TrajecSimu_UI():
         self.max_accel = np.zeros((n1, n2))
 
         # initialize array for parameter update
-        params_update = [ ['wind_speed', 0.], ['wind_direction', 0.], ['t_para_delay', 0.], ['t_deploy', 0.] ]
+        params_update = [ 
+                            ['wind_speed', 0.], 
+                            ['wind_direction', 0.],
+                            ['t_para_delay', 0.],
+                            ['t_deploy', 0.],
+                            ['wind_direction_original', self.myrocket.Params.params_dict['wind_direction']]
+                        ]
+        #params_update = [ ['wind_speed', 0.], ['loop_wind_direction', 0.], ['t_para_delay', 0.], ['t_deploy', 0.] ]
 
         # """
         # --------------------
@@ -117,7 +124,7 @@ class TrajecSimu_UI():
                 post_bal = PostProcess_single(self.myrocket)
                 post_bal.postprocess('maxval')
                 # record landing location
-                self.record_loop_result('bal', i_speed,i_angle, post_bal)
+                self.record_loop_result('bal', i_speed, i_angle, post_bal)
 
                 # ---------------------------------
                 # compute landing point for parachute fall

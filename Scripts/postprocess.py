@@ -79,7 +79,7 @@ class PostProcess_single():
             self.myrocket.trajectory.solution = self.myrocket.trajectory.solution[0:len(time),:]
 
             # alt_axis = self.myrocket.trajectory.solution[:, 2]
-            alt_axis = np.arange(0, 4000)
+            alt_axis = np.arange(0, 4500)
             # *** plot and show all results ***
             # thrust data echo
             self.echo_thrust(True)
