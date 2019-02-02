@@ -3,7 +3,7 @@
 """
 Created on Thu Jan 18 12:53:42 2018
 
-@author: shugo
+@author: shugo, kyoko
 """
 
 import numpy as np
@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 from Scripts.trajectory_main import Trajec_run
 from Scripts.postprocess import PostProcess_single, PostProcess_dist, JudgeInside
-
+from Scripts.kmlplot import output_kml
+import json
 
 class TrajecSimu_UI():
     # class for trajectory simulation interface
@@ -175,6 +176,24 @@ class TrajecSimu_UI():
         post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute')   # plot parachute scatter
 
         # -------------------------------
+        # output scatter map to kml
+        # -------------------------------
+        output_kml(
+            self.loc_bal,
+            post_dist.point_rail,
+            wind_speed_array,
+            post_dist.regulations,
+            'results/plot_bal.kml'
+            )
+        output_kml(
+            self.loc_para,
+            post_dist.point_rail,
+            wind_speed_array,
+            post_dist.regulations,
+            'results/plot_para.kml'
+            )
+
+        # -------------------------------
         #  define permitted ranges
         # -------------------------------
         tmp_centers = np.array([post_dist.xy_rail, post_dist.xy_switch, post_dist.xy_tent])
@@ -192,16 +211,17 @@ class TrajecSimu_UI():
             permitted_area_for_bal["outside_centers"]= tmp_centers
             permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
 
+
         elif self.launch_location == 'izu_sea':
-           # permitted range for Noshiro sea (2018)
-           permitted_area_for_para['inside_center'] = post_dist.xy_center
-           permitted_area_for_para['inside_radius'] = post_dist.hachiya_radius
-           permitted_area_for_para["over_line"]     = post_dist.hachiya_line
-           permitted_area_for_bal['inside_center']  = post_dist.xy_center
-           permitted_area_for_bal['inside_radius']  = post_dist.hachiya_radius
-           permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
-           permitted_area_for_bal["outside_centers"]= tmp_centers
-           permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
+            # permitted range for Izu sea (2018)
+            permitted_area_for_para['inside_center'] = post_dist.xy_center
+            permitted_area_for_para['inside_radius'] = post_dist.hachiya_radius
+            permitted_area_for_para["over_line"]     = post_dist.hachiya_line
+            permitted_area_for_bal['inside_center']  = post_dist.xy_center
+            permitted_area_for_bal['inside_radius']  = post_dist.hachiya_radius
+            permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
+            permitted_area_for_bal["outside_centers"]= tmp_centers
+            permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
 
 
         elif self.launch_location == 'izu':

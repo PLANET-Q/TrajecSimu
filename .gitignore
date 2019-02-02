@@ -4,3 +4,8 @@ Archive/
 *.DS_Store
 *.eps
 *.ipynb
+*.kml
+Thrust_curve_csv/*
+Parameters_csv/*
+wind_forecast_csv/*
+driver_*.py

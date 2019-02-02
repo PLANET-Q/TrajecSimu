@@ -16,6 +16,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import sympy.geometry as sg
 import quaternion
 from Scripts.errors import *
+import json
 
 
 """
@@ -100,7 +101,7 @@ class PostProcess_single():
             # plot dynamic pressure history
 
             # plot wind
-            self.plot_wind(alt_axis)
+            #self.plot_wind(alt_axis)
             # show all plots
             plt.show()
 
@@ -615,6 +616,16 @@ class PostProcess_dist():
     def set_coordinate_izu(self):
         # !!!! hardcoding for 2018 izu ura-sabaku
         # Set limit range in maps (Defined by North latitude and East longitude)
+
+        # -----------------------------------
+        #  Load permitted range from json
+        # -----------------------------------
+        with open('location_parameters/izu.json', 'r') as f:
+            self.regulations = json.load(f)
+        for reg in self.regulations:
+            if reg['name'] == 'rail':
+                self.point_rail = reg['center']
+                break
         # -----------------------------------
         #  Define permitted range
         # -----------------------------------
@@ -694,6 +705,17 @@ class PostProcess_dist():
     def set_coordinate_izu_sea(self):
         # !!!! hardcoding for 2018 noshiro umi_uchi
         # Set limit range in maps (Defined by North latitude and East longitude)
+
+        # -----------------------------------
+        #  Load permitted range here
+        # -----------------------------------
+        with open('location_parameters/izu_sea.json', 'r') as f:
+            self.regulations = json.load(f)
+        for reg in self.regulations:
+            if reg['name'] == 'rail':
+                self.point_rail = reg['center']
+                break
+
         # -----------------------------------
         #  Define permitted range here
         # -----------------------------------
@@ -1207,6 +1229,7 @@ class JudgeInside():
         if line_flag2 == True:
 
            if check_point[1] > self.over_line[0]*check_point[0]+self.over_line[1]:
+               print('Judge:False by over_line')
                judge_result = np.bool(False)
 
         #-------------------------------------------------------------
