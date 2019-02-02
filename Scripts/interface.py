@@ -18,7 +18,7 @@ from Scripts.postprocess import PostProcess_single, PostProcess_dist, JudgeInsid
 class TrajecSimu_UI():
     # class for trajectory simulation interface
 
-    def __init__(self, csv_filename, loc='noshiro_sea'):
+    def __init__(self, csv_filename, loc='izu_sea'):
         # =============================================
         # This method is called when an instance is created
         #
@@ -67,7 +67,7 @@ class TrajecSimu_UI():
         # --------------------
         n1 = len(wind_speed_array)
         n2 = len(wind_direction_array)
-        self.loc_bal      = np.zeros((n1, n2, 2))    # ballistic landing location
+        self.loc_bal      = np.zeros((n1, n2, 2))    #  landing location
         self.loc_para     = np.zeros((n1, n2, 2))    # parachute fall landing location
         self.max_alt      = np.zeros((n1, n2))       # max altitude
         self.max_vel      = np.zeros((n1, n2))       # max velocity
@@ -191,6 +191,19 @@ class TrajecSimu_UI():
             permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
             permitted_area_for_bal["outside_centers"]= tmp_centers
             permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
+
+        elif self.launch_location == 'izu_sea':
+           # permitted range for Noshiro sea (2018)
+           permitted_area_for_para['inside_center'] = post_dist.xy_center
+           permitted_area_for_para['inside_radius'] = post_dist.hachiya_radius
+           permitted_area_for_para["over_line"]     = post_dist.hachiya_line
+           permitted_area_for_bal['inside_center']  = post_dist.xy_center
+           permitted_area_for_bal['inside_radius']  = post_dist.hachiya_radius
+           permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
+           permitted_area_for_bal["outside_centers"]= tmp_centers
+           permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
+
+
         elif self.launch_location == 'izu':
             # premitted range for Izu dessert (2018)
             permitted_area_for_para['range']         = post_dist.xy_range
@@ -200,7 +213,7 @@ class TrajecSimu_UI():
             permitted_area_for_bal['outside_centers']= tmp_centers
             permitted_area_for_bal['outside_radius'] = post_dist.lim_radius
         else:
-            raise NotImplementedError('The launch site is not implemented. "Noshiro_sea" or "izu" are currently available')
+            raise NotImplementedError('The launch site is not implemented. "Noshiro_sea" or "izu" or "izu_sea" are currently available')
         # END IF
 
         # -------------------------------

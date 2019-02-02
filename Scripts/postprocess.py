@@ -78,6 +78,8 @@ class PostProcess_single():
             self.myrocket.trajectory.solution = self.myrocket.trajectory.solution[0:len(time),:]
 
             alt_axis = self.myrocket.trajectory.solution[:,2]
+            # alt_axis = np.arange(0, 5000, 1)
+
             # *** plot and show all results ***
             # thrust data echo
             self.echo_thrust(True)
@@ -587,7 +589,7 @@ class PostProcess_single():
         for h in alt:
             wind_array.append(wind_func(h))
 
-        wind_array = np.array(wind_array)
+        wind_array = np.array(wind_array).T
 
         plt.plot(wind_array[0], wind_array[1], alt, lw=1.5)
 
@@ -596,7 +598,6 @@ class PostProcess_single():
         ax.set_zlabel('altitude [m]')
         ax.set_title('Altitude vs. Wind')
         plt.grid()
-
 
 
 class PostProcess_dist():
@@ -689,7 +690,6 @@ class PostProcess_dist():
         """
 
         return None
-
 
     def set_coordinate_izu_sea(self):
         # !!!! hardcoding for 2018 noshiro umi_uchi
@@ -879,8 +879,7 @@ class PostProcess_dist():
             img_origin = np.array([722, 749])    # TODO : compute by lat/long of launcher point
 
             #pixel2meter = (139.431463 - 139.41283)/1800.0 * lon2met
-            pixel2meter =  0.946981208125
-
+            pixel2meter = 0.946981208125
 
             # Define image range
             img_left =   -1.0 * img_origin[0] * pixel2meter
@@ -915,7 +914,9 @@ class PostProcess_dist():
             """
             # plot landing point for 2018/3/23
             plt.plot(self.xy_land[0], self.xy_land[1], 'r*', markersize = 12, label='actual langing point')
+
             """
+
         elif self.launch_location == 'izu_sea':
             #for IZU set
             # Set limit range in maps
@@ -923,14 +924,15 @@ class PostProcess_dist():
 
             # for tamura version
             # Set map image
-            img_map = Image.open("./map/izu_sea.png")
+            img_map = Image.open("./map/izu_sea_mag.png")
             img_list = np.asarray(img_map)
             img_height = img_map.size[0]
             img_width = img_map.size[1]
-            img_origin = np.array([609, 510])   # TODO : compute by lat/long of launcher point
-
+            #img_origin = np.array([609, 510])   # TODO : compute by lat/long of launcher point
+            img_origin = np.array([517, 201])
             #pixel2meter = (139.431463 - 139.41283)/1800.0 * lon2met
-            pixel2meter = 4.09836066
+            #pixel2meter = 4.09836066
+            pixel2meter = 6.09756098
 
             # Define image range
             img_left =   -1.0* img_origin[0] * pixel2meter
@@ -978,76 +980,6 @@ class PostProcess_dist():
             plt.plot(self.xy_tent[0], self.xy_tent[1], '.', color=color_circle)
             #plt.plot(self.xy_range[:,0], self.xy_range[:,1], '--', color=color_line)
 
-
-
-
-        #elif self.launch_location == 'izu_sea':
-            #for izu SEA!!
-            # Set limit range in maps
-            '''self.set_coordinate_izu_sea()
-
-             Set map image
-            img_map = Image.open("./map/izu_sea.png")
-            img_list = np.asarray(img_map)
-            img_height = img_map.size[1]
-            # print(img_map.size)
-            img_width = img_map.size[0]
-            img_origin = np.array([204, 147])    # TODO : compute by lat/long of launcher point
-
-            #pixel2meter
-            pixel2meter = 6.313131
-
-            # Define image range
-            img_left =   -2.1875 * img_origin[0] * pixel2meter
-            img_right = (img_width - img_origin[0]) * pixel2meter
-            img_top = img_origin[1] * pixel2meter
-            img_bottom = -.0 * (img_height - img_origin[1]) * pixel2meter
-
-            #calculate intersections of "inside_circle" and "over_line"
-            center1 = sg. Point(self.xy_center[0],self.xy_center[1])
-            radius1 = self.hachiya_radius
-            circle1 = sg.Circle(center1,radius1)
-            line = sg.Line(sg.Point(self.xy_point[0,0],self.xy_point[0,1]), sg.Point(self.xy_point[1,0],self.xy_point[1,1]))
-            result1 = sg.intersection(circle1, line)
-            intersection1_1 = np.array([float(result1[0].x), float(result1[0].y)])
-            intersection1_2 = np.array([float(result1[1].x), float(result1[1].y)])
-
-            #caluculate equation of hachiya_line(="over_line")
-            self.a = (self.xy_point[1,1]-self.xy_point[0,1])/(self.xy_point[1,0]-self.xy_point[0,0])
-            self.b = (self.xy_point[0,1]*self.xy_point[1,0]-self.xy_point[1,1]*self.xy_point[0,0])/(self.xy_point[1,0]-self.xy_point[0,0])
-            self.x = np.arange(intersection1_1[0],intersection1_2[0],1)
-            self.y = self.a*self.x + self.b
-            self.hachiya_line = np.array([self.a, self.b])
-
-            # plot setting
-            plt.figure(figsize=(10,10))
-            ax = plt.axes()
-            color_line = '#ffff33'    # Yellow
-            color_circle = 'r'    # Red
-
-            # Set circle object
-            cir_rail = patches.Circle(xy=self.xy_rail, radius=self.lim_radius, ec=color_line, fill=False)
-            #cir_switch = patches.Circle(xy=self.xy_switch, radius=self.lim_radius, ec=color_circle, fill=False)
-            #cir_tent = patches.Circle(xy=self.xy_tent, radius=self.lim_radius, ec=color_circle, fill=False)
-            cir_center = patches.Circle(xy=self.xy_center, radius=self.hachiya_radius, ec=color_circle, fill=False)
-
-            ax.add_patch(cir_rail)
-            #ax.add_patch(cir_switch)
-            #ax.add_patch(cir_tent)
-            ax.add_patch(cir_center)
-
-            # plot map
-            plt.imshow(img_list, extent=(img_left, img_right, img_bottom, img_top))
-
-            # Write landing permission range
-            plt.plot(self.x, self.y,"r")
-            plt.plot(self.xy_rail[0], self.xy_rail[1], '.', color=color_circle)
-            #plt.plot(self.xy_switch[0], self.xy_switch[1], '.', color=color_circle)
-            #plt.plot(self.xy_tent[0], self.xy_tent[1], '.', color=color_circle)
-            #plt.plot(self.xy_range[:,0], self.xy_range[:,1], '--', color=color_line)
-            plt.plot(self.xy_center[0], self.xy_center[1], '.', color=color_circle)
-
-'''
         elif self.launch_location == 'noshiro_sea':
             #for NOSHIRO SEA!!
             # Set limit range in maps
@@ -1115,7 +1047,7 @@ class PostProcess_dist():
             plt.plot(self.xy_center[0], self.xy_center[1], '.', color=color_circle)
 
         else:
-            raise NotImplementedError('Available location is: izu or izu_sea or noshiro_sea'  )
+            raise NotImplementedError('Available location is: izu or izu_sea or noshiro_sea' )
 
         return None
 
@@ -1274,7 +1206,7 @@ class JudgeInside():
        # Judge under the line
         if line_flag2 == True:
 
-           if check_point[1] < self.over_line[0]*check_point[0]+self.over_line[1]:
+           if check_point[1] > self.over_line[0]*check_point[0]+self.over_line[1]:
                judge_result = np.bool(False)
 
         #-------------------------------------------------------------
@@ -1352,7 +1284,7 @@ class JudgeInside():
 
 if __name__ == '__main__':
     tmp = PostProcess_dist('noshiro_sea')
-    tmp.set_coordinate_noshiro()
+    tmp.set_coordinate_noshiro_sea()
     tmp.plot_map()
 
 #END IF

@@ -12,7 +12,7 @@ import numpy as np
 from Scripts.interface import TrajecSimu_UI
 
 # define path and filename of raa csv file
-config_filename = 'Parameters_csv/PQ014_ver_01_11.csv'
+config_filename = 'Parameters_csv/PQ014_ver_01_16.csv'
 
 # create an instance
 mysim = TrajecSimu_UI(config_filename, 'izu_sea')
@@ -21,7 +21,6 @@ mysim = TrajecSimu_UI(config_filename, 'izu_sea')
 # run a single trajectory computation
 # ------------------------------------
 #mysim.run_single()
-
 # ------------------------------------
 # run a loop for landing point distribution
 # ------------------------------------
@@ -29,7 +28,7 @@ mysim = TrajecSimu_UI(config_filename, 'izu_sea')
 #         n_winddirec: number of wind directions
 #         max_windspeed: max. wind speed [m/s]
 #         windspeed_step: wind speed step [m/s]
-mysim.run_loop(4, 4, 1)
+mysim.run_loop(8, 8, 1)
 
 # ------------------------------------
 # run an inverse design problem

@@ -95,10 +95,10 @@ class Parameters():
                             'T0'             : 298.,    # temperature at 10m altitude [K]
                             'p0'             : 1.013e5, # pressure  at 10m alt. [Pa]
                             # wind property
-                            'wind_direction'   : 0.,      # azimuth where wind is blowing FROM
-                            'wind_speed'       : 4.,      # wind speed at 'wind_alt_std' alt. [m/s]
-                            'wind_power_coeff' : 7.,
-                            'wind_alt_std'     : 10.,      # alt. at which the wind speed is given [m]
+                            'wind_direction'   : 315.,      # azimuth where wind is blowing FROM
+                            'wind_speed'       : 2.,      # wind speed at 'wind_alt_std' alt. [m/s]
+                            'wind_power_coeff' : 14.,
+                            'wind_alt_std'     : 5.,      # alt. at which the wind speed is given [m]
 
                             # wind model
                             'wind_model'       : 'power',  # 'power for Wind Power Method, 'power-forecast-hydrid' for power-forecast hybrid'
@@ -134,9 +134,9 @@ class Parameters():
                             'Cd_para': 1.,           # drag coefficient of 1st parachute
                             'S_para': 0.5,           # parachute area of 1st parachute[m^2]
                             'second_para': False,    # True if two stage parachute deployment
-                            't_deploy_2': 20000,     # 2nd parachute deployment time from apogee detection
+                            't_deploy_2': 2000,     # 2nd parachute deployment time from apogee detection
                             'Cd_para_2': 1,          # drag coefficient of 2nd parachute
-                            'S_para_2': 6.082,       # parachute area of 2nd parachute[m^2]
+                            'S_para_2': 6.082,  # parachute area of 2nd parachute[m^2]
                             'alt_para_2': -100,      # altitude at which 2nd parachute will be deployed
                             }
 
@@ -601,8 +601,8 @@ class Parameters():
                 #transition = 20.
 
                 # NOTE: 2018/10/08: changed parameters for Izu-Riku Nov 2018
-                boundary_alt = 200.
-                transition = 100.
+                boundary_alt = 700.
+                transition = 50.
 
                 if h <= boundary_alt - transition:
                     # use power law only
@@ -628,8 +628,8 @@ class Parameters():
                 #transition = 20.
 
                 # NOTE: 2018/10/08: changed parameters for Izu-Riku Nov 2018
-                boundary_alt = 200.
-                transition = 100.
+                boundary_alt = 300.
+                transition = 50.
 
                 if h <= boundary_alt - transition:
                     # use log law only
