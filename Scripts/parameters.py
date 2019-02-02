@@ -182,10 +182,16 @@ class Parameters():
             self.T0 = float( self.params_dict['T0'] )  # temperature [K] at 10m alt.
             self.p0 = float( self.params_dict['p0'] )  # pressure [Pa] at 10m alt.
 
-            # wind property
-            self.wind_direction    = float( self.params_dict['wind_direction'] )               # azimuth where wind is blowing from [deg]
-            angle_wind        = np.deg2rad( (-self.wind_direction + 90.) )                     # angle to which wind goes (x orients east, y orients north)
+            self.wind_direction = float( self.params_dict['wind_direction'] )          # azimuth where wind is blowing from [deg]:
+
+            # angle to which wind goes (x orients east, y orients north)
+            if self.params_dict['wind_model'] == 'power-es-hybrid' and 'wind_direction_original' in self.params_dict:
+                angle_wind = np.deg2rad((-float(self.params_dict['wind_direction_original']) + 90.))
+            else:
+                angle_wind = np.deg2rad( (-self.wind_direction + 90.) )
+            #angle_wind = np.deg2rad( (-self.wind_direction + 90.) )
             self.wind_unitvec = -np.array([np.cos(angle_wind), np.sin(angle_wind) ,0.])   # wind unitvector (blowing TO)
+
             self.wind_speed   = float( self.params_dict['wind_speed'] )                   # speed of wind [m/s] at 10m alt.
             self.Cwind        = 1./float( self.params_dict['wind_power_coeff'] )          # wind power coefficient
             self.wind_alt_std = float( self.params_dict['wind_alt_std'])
@@ -203,8 +209,14 @@ class Parameters():
                 self.wind_statistics_filename\
                     = self.params_dict['statistics_filename']
                 self.setup_statistics()
+
+            if 'error_stat_filename' in self.params_dict:
+                self.wind_error_statistics_filename\
+                    = self.params_dict['error_stat_filename']
+                self.setup_error_statistics()
+
             # earth gravity
-            self.grav = np.array([0., 0., -9.81])    # in fixed coordinate
+            self.grav = np.array([0., 0., -9.81])  # in fixed coordinate
 
         except:
             raise ParameterDefineError('launch condition')
@@ -588,6 +600,35 @@ class Parameters():
             self.wind = self.wind_forecast
         elif self.wind_model == 'statistics':
             self.wind = self.wind_statistics
+        elif self.wind_model == 'error-statistics':
+            self.wind = self.wind_error_statistics
+        elif self.wind_model == 'power-es-hybrid':
+            def wind_power_es(h):
+                if h < 0.:
+                    h = 0.
+
+                # NOTE: 2018/10/08: changed parameters for Izu-Riku Nov 2018
+                boundary_alt = 300.
+                # transition = 100.
+
+                #if h <= boundary_alt - transition:
+                if h <= boundary_alt:
+                    # use power law only
+                    return self.wind_power(h)
+                else:
+                    # use forecast only
+                    return self.wind_error_statistics(h)
+                '''
+                elif h <= boundary_alt + transition:
+                    # use both
+                    weight = (h - (boundary_alt-transition)) / (2*transition)
+                    return weight * self.wind_error_statistics(h) +\
+                        (1. - weight) * self.wind_power(h)
+                '''
+                # END IF
+            # END OF DIFINITION
+
+            self.wind = wind_power_es
         elif self.wind_model == 'power-forecast-hybrid':
             # -------------------
             # power law and forecast hybrid model
@@ -644,28 +685,53 @@ class Parameters():
 
             self.wind = wind_log_forecast
         elif self.wind_model == 'power-statistics-hybrid':
-                def wind_power_statistics(h):
-                    if h < 0.:
-                        h = 0.
+            def wind_power_statistics(h):
+                if h < 0.:
+                    h = 0.
 
-                    boundary_alt = 1000.
-                    transition = 500.
+                boundary_alt = 1000.
+                transition = 500.
 
-                    if h <= boundary_alt - transition:
-                        # use power law only
-                        return self.wind_power(h)
-                    elif h <= boundary_alt + transition:
-                        # use both
-                        weight = (h - (boundary_alt-transition) ) / (2*transition)
-                        return weight*self.wind_statistics(h) + (1.-weight)*self.wind_power(h)
-                    else:
-                        # use statistics only
-                        return self.wind_statistics(h)
-                    # END IF
-                # END OF DIFINITION
-                self.wind = wind_power_statistics
+                if h <= boundary_alt - transition:
+                    # use power law only
+                    return self.wind_power(h)
+                elif h <= boundary_alt + transition:
+                    # use both
+                    weight = (h - (boundary_alt-transition) ) / (2*transition)
+                    return weight*self.wind_statistics(h) + (1.-weight)*self.wind_power(h)
+                else:
+                    # use statistics only
+                    return self.wind_statistics(h)
+                # END IF
+            # END OF DIFINITION
+            self.wind = wind_power_statistics
         else:
             raise ParameterDefineError('wind model definition is wrong.')
+
+    def setup_error_statistics(self):
+        try:
+            with open(self.wind_error_statistics_filename, 'r') as f:
+                params = json.load(f)
+        except:
+            raise FileNotFoundError(' Wind statistics data file not found')
+
+        print('statistics parameterfile loaded')
+        alt = params['alt_axis']
+        forecast_wind_array = self.wind_forecast(alt)[:2].T
+        print('wind forecast: ', forecast_wind_array)
+        n_alt = len(alt)
+        wind_tmp = getStatWindVector(
+                        statistics_parameters=params,
+                        wind_direction_deg=self.wind_direction,
+                        wind_std=forecast_wind_array
+                        )
+
+        wind_vec_stat = np.c_[wind_tmp[0], wind_tmp[1], [0] * n_alt].T
+        # setup wind_statistics interpolation function
+        self.wind_error_statistics = interpolate.interp1d(
+                                alt,
+                                wind_vec_stat,
+                                fill_value='extrapolate')
 
     def setup_forcast(self):
         try:
@@ -686,8 +752,8 @@ class Parameters():
 
         # magnetic angle correction
         theta = np.deg2rad(8.9)
-        wind_W2E = wind_W2E_tmp * np.cos(theta) + wind_S2N_tmp* np.sin(theta)
-        wind_S2N =  - wind_W2E_tmp * np.sin(theta) + wind_S2N_tmp* np.cos(theta)
+        wind_W2E = wind_W2E_tmp * np.cos(theta) + wind_S2N_tmp*np.sin(theta)
+        wind_S2N = -wind_W2E_tmp * np.sin(theta) + wind_S2N_tmp*np.cos(theta)
         # set as vector (blowing TO)
         wind_vec_fore = np.c_[wind_W2E, wind_S2N, wind_UP].T
 
@@ -742,7 +808,7 @@ class Parameters():
 
     # definition of wind power law
     def wind_power(self, h):
-        if h<0.:
+        if h < 0.:
             h = 0.
         # END IF
 

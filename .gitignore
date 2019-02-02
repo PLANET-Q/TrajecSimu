@@ -8,4 +8,5 @@ Archive/
 Thrust_curve_csv/*
 Parameters_csv/*
 wind_forecast_csv/*
+.vscode
 driver_*.py

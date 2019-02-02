@@ -78,9 +78,14 @@ class PostProcess_single():
             # cut off useless info out of ODE solution array
             self.myrocket.trajectory.solution = self.myrocket.trajectory.solution[0:len(time),:]
 
+<<<<<<< HEAD
             alt_axis = self.myrocket.trajectory.solution[:,2]
             # alt_axis = np.arange(0, 5000, 1)
 
+=======
+            # alt_axis = self.myrocket.trajectory.solution[:, 2]
+            alt_axis = np.arange(0, 4500)
+>>>>>>> feature/forecast_statistics
             # *** plot and show all results ***
             # thrust data echo
             self.echo_thrust(True)
@@ -101,7 +106,7 @@ class PostProcess_single():
             # plot dynamic pressure history
 
             # plot wind
-            #self.plot_wind(alt_axis)
+            self.plot_wind(alt_axis)
             # show all plots
             plt.show()
 
@@ -576,7 +581,6 @@ class PostProcess_single():
         plt.xlabel('t [s]')
         plt.ylabel('omega [rad/s]')
         plt.grid()
-        #plt.show
 
         return None
 
@@ -588,10 +592,16 @@ class PostProcess_single():
         wind_array = []
         wind_func = self.myrocket.trajectory.Params.wind
         for h in alt:
+<<<<<<< HEAD
             wind_array.append(wind_func(h))
 
         wind_array = np.array(wind_array).T
+=======
+            wind_array.append(wind_func(h)[:2])
+>>>>>>> feature/forecast_statistics
 
+        wind_array = np.array(wind_array).T
+        print('wind array: ', np.shape(wind_array))
         plt.plot(wind_array[0], wind_array[1], alt, lw=1.5)
 
         ax.set_xlabel('u [m/s]')
