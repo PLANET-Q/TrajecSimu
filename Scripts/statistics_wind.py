@@ -162,7 +162,7 @@ def getStatWindVector(
             sigma_YY=sigma4[h][:2, :2],
             X=wind_std[h])
 
-        scale, M, _ = getEllipseParameters(mu, sigma, alpha=0.99)
+        scale, M, _ = getEllipseParameters(mu, sigma, alpha=0.95)
         # print('wind direction deg', wind_direction_deg)
         w = getAzimuthWindByEllipse(
                             mu + wind_std[h],

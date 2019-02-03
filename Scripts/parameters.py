@@ -95,6 +95,7 @@ class Parameters():
                             'T0'             : 298.,    # temperature at 10m altitude [K]
                             'p0'             : 1.013e5, # pressure  at 10m alt. [Pa]
                             # wind property
+                            'wind_direction_original' : -1.,
                             'wind_direction'   : 315.,      # azimuth where wind is blowing FROM
                             'wind_speed'       : 2.,      # wind speed at 'wind_alt_std' alt. [m/s]
                             'wind_power_coeff' : 14.,
@@ -153,7 +154,6 @@ class Parameters():
 
         # overwrite param_dict (convert Dataframe -> array -> dict)
         self.params_dict.update( dict( params_df_userdef.as_matrix() ) )
-
         # set instance variables from params_dict
         # -----------------------------
         # numerical executive
@@ -185,11 +185,23 @@ class Parameters():
             self.wind_direction = float( self.params_dict['wind_direction'] )          # azimuth where wind is blowing from [deg]:
 
             # angle to which wind goes (x orients east, y orients north)
-            if self.params_dict['wind_model'] == 'power-es-hybrid' and 'wind_direction_original' in self.params_dict:
-                angle_wind = np.deg2rad((-float(self.params_dict['wind_direction_original']) + 90.))
+            print('userdef:')
+            print(params_df_userdef)
+            print('Wind model: ', self.params_dict['wind_model'])
+            wind_direction_original = float(self.params_dict['wind_direction_original'])
+            if wind_direction_original != -1.:
+                print('Wind direction original Found')
+            
+            if (self.params_dict['wind_model'] == 'power-es-hybrid') and wind_direction_original != -1.:
+                angle_wind = np.deg2rad(-wind_direction_original + 90.)
+                print('---------------------')
+                print('Wind direction:', self.wind_direction)
+                print('Wind Power Direction:', wind_direction_original)
+                print('---------------------')
             else:
                 angle_wind = np.deg2rad( (-self.wind_direction + 90.) )
             #angle_wind = np.deg2rad( (-self.wind_direction + 90.) )
+            
             self.wind_unitvec = -np.array([np.cos(angle_wind), np.sin(angle_wind) ,0.])   # wind unitvector (blowing TO)
 
             self.wind_speed   = float( self.params_dict['wind_speed'] )                   # speed of wind [m/s] at 10m alt.

@@ -156,10 +156,10 @@ def output_kml(drop_points, rail_coord, wind_speeds, regulations, filename):
         color_r = int(float(i / n_speeds) * 127) + 128
         drop_coords = dropPoint2Coordinate(drop_points[i], rail_coord[::-1])
 
-        directions = np.linspace(0, 360, len(drop_coords) - 1, endpoint=False)
-        for j, direction in enumerate(directions):
-            name = str(direction) + ' deg@' + str(wind_speed) + '[m/s]'
-            kml.newpoint(name=name, coords=[drop_coords[j]])
+        #directions = np.linspace(0, 360, len(drop_coords) - 1, endpoint=False)
+        #for j, direction in enumerate(directions):
+            #name = str(direction) + ' deg@' + str(wind_speed) + '[m/s]'
+            #kml.newpoint(name=name, coords=[drop_coords[j]])
 
         line = kml.newlinestring(name=(str(wind_speed)+' [m/s]'))
         line.style.linestyle.color = simplekml.Color.rgb(color_r, 0, 0)
