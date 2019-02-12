@@ -3,7 +3,7 @@ import numpy as np
 import json
 
 
-def dropPoint2Coordinate(drop_points, coord0, mag_dec=7.53):
+def dropPoint2Coordinate(drop_points, coord0, mag_dec=-7.53):
     # drop_point: [x, y] distances from launch point [m]
     # coord0: [lon, lat]
     # mag_dec: magnetic deflection angle of lauch point(default: izu) [deg]
