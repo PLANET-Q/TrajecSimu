@@ -6,6 +6,7 @@ Created on Thu Jan 18 12:53:42 2018
 @author: shugo, kyoko
 """
 
+import os
 import numpy as np
 import pandas as pd
 import subprocess
@@ -168,19 +169,24 @@ class TrajecSimu_UI():
         self.loc_para = np.dstack( (tmpx, tmpy) )
         """
 
+        if self.myrocket.Params.params_dict['wind_model'] == 'power-es-hybrid':
+            wind_direction_original = self.myrocket.Params.params_dict['wind_direction_original']
+            output_dir = './results/power-es-hybrid/' + str(wind_direction_original) +'deg/'
+        else:
+            output_dir = './results/' + self.myrocket.Params.params_dict['wind_model'] + '/'
+        
         # create directory for results
-        try:
-            subprocess.run(['mkdir', 'results'])
-        except:
-            pass
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
         # -------------------------------
         #  plot landing points scatter map
         # -------------------------------
         # create instance for postprocessing
         post_dist = PostProcess_dist(self.launch_location)
         elev_angle = self.myrocket.Params.elev_angle  # launcher elev angle
-        post_dist.plot_sct(self.loc_bal,  wind_speed_array, elev_angle, 'Ballistic')   # plot ballistic scatter
-        post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute')   # plot parachute scatter
+        post_dist.plot_sct(self.loc_bal,  wind_speed_array, elev_angle, 'Ballistic', savedir=output_dir)   # plot ballistic scatter
+        post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute', savedir=output_dir)   # plot parachute scatter
 
         # -------------------------------
         # output scatter map to kml
@@ -190,14 +196,14 @@ class TrajecSimu_UI():
             post_dist.point_rail,
             wind_speed_array,
             post_dist.regulations,
-            'results/plot_bal.kml'
+            output_dir + 'plot_bal.kml'
             )
         output_kml(
             self.loc_para,
             post_dist.point_rail,
             wind_speed_array,
             post_dist.regulations,
-            'results/plot_para.kml'
+            output_dir + 'plot_para.kml'
             )
 
         # -------------------------------
@@ -298,7 +304,7 @@ class TrajecSimu_UI():
         # ------------------------------
         # save information to excel file
         # ------------------------------
-        self.output_loop_result(wind_speed_array, wind_direction_array)
+        self.output_loop_result(wind_speed_array, wind_direction_array, output_dir)
 
         return None
 
@@ -334,7 +340,7 @@ class TrajecSimu_UI():
 
         return None
 
-    def output_loop_result(self,wind_speed_array, wind_direction_array):
+    def output_loop_result(self,wind_speed_array, wind_direction_array, savedir='./results/'):
         # convert np.arrays into pandas dataframes
         ws = wind_speed_array
         wd = wind_direction_array
@@ -356,7 +362,7 @@ class TrajecSimu_UI():
 
 
         # define output file name
-        output_name = 'results/output_' + str(int(self.myrocket.Params.elev_angle)) + 'deg.xlsx'
+        output_name = savedir + 'output_' + str(int(self.myrocket.Params.elev_angle)) + 'deg.xlsx'
         excel_file = pd.ExcelWriter(output_name)
 
         # write dataframe with sheet name
@@ -376,12 +382,11 @@ class TrajecSimu_UI():
         # Max acceleration
         max_accel.to_excel(excel_file, '最大加速度 ')
 
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
+        
         # save excel file
-        try:
-            excel_file.save()
-        except:
-            subprocess.run(['mkdir', 'results'])
-            excel_file.save()
+        excel_file.save()
 
         return None
 

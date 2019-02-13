@@ -1071,7 +1071,7 @@ class PostProcess_dist():
 
         return None
 
-    def plot_sct(self, drop_point, wind_speed_array, launcher_elev_angle, fall_type):
+    def plot_sct(self, drop_point, wind_speed_array, launcher_elev_angle, fall_type, savedir='./results/'):
         # -------------------
         # plot landing distribution
         # hardcoded for noshiro
@@ -1105,7 +1105,7 @@ class PostProcess_dist():
 
 
         # output_name = "output/Figure_elev_" + str(int(rail_elev)) + ".png"
-        output_name = 'results/Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.eps'
+        output_name = savedir + 'Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.eps'
 
         plt.title(title_name)
         plt.legend()
