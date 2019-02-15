@@ -1110,7 +1110,7 @@ class PostProcess_dist():
         plt.title(title_name)
         plt.legend()
         plt.savefig(output_name, bbox_inches='tight')
-        plt.show()
+        #plt.show()
 
 """
 # class for auto-judge
