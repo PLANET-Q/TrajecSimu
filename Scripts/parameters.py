@@ -412,15 +412,17 @@ class Parameters():
 
                 time_raw = input_raw[:, 0]
                 # thrust array
-                #self.time_array = time_raw * time_factor
-                #self.thrust_array = thrust_raw * thrust_factor
+
+                self.time_array = time_raw * time_factor
+                #thrust_raw[thrust_raw < 0] = 0
+                self.thrust_array = thrust_raw * thrust_factor
 
                 # cut off info where thrust is less that 1% of T_max
-                self.thrust_array = thrust_raw[thrust_raw >= 0.01*np.max(thrust_raw)]*thrust_factor
+                #self.thrust_array = thrust_raw[thrust_raw >= 0.01*np.max(thrust_raw)]*thrust_factor
 
                 # time array
                 # self.time_array = np.arange(0., len(self.thrust_array)*self.thrust_dt, self.thrust_dt) * time_factor
-                self.time_array = time_raw[thrust_raw >= 0.01*np.max(thrust_raw)]*time_factor
+                #self.time_array = time_raw[thrust_raw >= 0.01*np.max(thrust_raw)]*time_factor
 
             elif self.thrust_input_type == 'time_curve':
                 # time array
@@ -428,9 +430,13 @@ class Parameters():
                 # thrust array
                 self.thrust_array = input_raw[:,1]
 
+                #self.thrust_array[self.thrust_array < 0] = 0
+                self.time_array = self.time_array * thrust_factor
+                self.thrust_array = self.thrust_array * thrust_factor
+
                 # cut-off and magnification
-                self.time_array = self.time_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * time_factor
-                self.thrust_array = self.thrust_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * thrust_factor
+                #self.time_array = self.time_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * time_factor
+                #self.thrust_array = self.thrust_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * thrust_factor
             else:
                 raise ParameterDefineError('Thrust input type definition is wrong.')
             # END IF
@@ -463,6 +469,7 @@ class Parameters():
                 tf2[np.abs(freq) > fs] = 0
                 # inverse FFT
                 self.thrust_array = np.real(fftpack.ifft(tf2))
+                self.thrust_array[self.thrust_array < 0] = 0
             # END IF
 
             # -------------------
