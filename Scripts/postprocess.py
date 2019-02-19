@@ -1105,7 +1105,8 @@ class PostProcess_dist():
 
 
         # output_name = "output/Figure_elev_" + str(int(rail_elev)) + ".png"
-        output_name = savedir + 'Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.eps'
+        #output_name = savedir + 'Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.eps'
+        output_name = savedir + 'Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.png'
 
         plt.title(title_name)
         plt.legend()

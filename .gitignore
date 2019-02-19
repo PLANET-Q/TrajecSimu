@@ -1,6 +1,7 @@
 *.pyc
 *.xlsx
 Archive/
+results/
 *.DS_Store
 *.eps
 *.ipynb
