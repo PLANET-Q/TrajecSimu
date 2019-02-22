@@ -661,8 +661,8 @@ class Parameters():
                 #transition = 20.
 
                 # NOTE: 2018/10/08: changed parameters for Izu-Riku Nov 2018
-                boundary_alt = 700.
-                transition = 50.
+                boundary_alt = 400.
+                transition = 100.
 
                 if h <= boundary_alt - transition:
                     # use power law only
@@ -708,8 +708,8 @@ class Parameters():
                 if h < 0.:
                     h = 0.
 
-                boundary_alt = 1000.
-                transition = 500.
+                boundary_alt = 400.
+                transition = 100.
 
                 if h <= boundary_alt - transition:
                     # use power law only
