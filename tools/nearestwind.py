@@ -16,8 +16,6 @@ parser.add_argument('src_filename',
 parser.add_argument('search_foldername',
                     help='検索候補となる過去の予報風csvファイルが入っているフォルダ名。')
 
-# 任意引数
-parser.add_argument('-p', '--plot', help='結果の予報風と入力の予報風を比較するプロットを行う。')
 
 alt_axis = np.arange(300.0, 10000, 300.0)
 
@@ -70,15 +68,14 @@ print('    NEAREST WIND FILE:', search_filenames[nearest_wind_idx])
 print('SUM-SQUARE LOSS VALUE:', square_sum[nearest_wind_idx])
 print('---------------------')
 
-if args.plot is not None:
-    nearest_wind = search_wind[nearest_wind_idx]
+nearest_wind = search_wind[nearest_wind_idx]
 
-    fig = plt.figure(0)
-    ax = fig.add_subplot(111, projection='3d')
-    plt.plot(nearest_wind[:,0], nearest_wind[:,1], alt_axis, label='nearest wind')
-    plt.plot(src_wind[:,0], src_wind[:,1], alt_axis, label='src wind')
-    ax.set_xlabel('U [m/s]')
-    ax.set_ylabel('V [m/s]')
-    ax.set_zlabel('altitude [m]')
-    plt.legend()
-    plt.show()
+fig = plt.figure(0)
+ax = fig.add_subplot(111, projection='3d')
+plt.plot(nearest_wind[:,0], nearest_wind[:,1], alt_axis, label='nearest wind')
+plt.plot(src_wind[:,0], src_wind[:,1], alt_axis, label='src wind')
+ax.set_xlabel('U [m/s]')
+ax.set_ylabel('V [m/s]')
+ax.set_zlabel('altitude [m]')
+plt.legend()
+plt.show()
