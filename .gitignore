@@ -12,3 +12,4 @@ wind_forecast_csv/*
 .vscode
 driver_*.py
 *.code-workspace
+statistics_parameters/*
