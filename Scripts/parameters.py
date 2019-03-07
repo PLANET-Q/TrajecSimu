@@ -431,12 +431,13 @@ class Parameters():
                 self.thrust_array = input_raw[:,1]
 
                 #self.thrust_array[self.thrust_array < 0] = 0
-                self.time_array = self.time_array * thrust_factor
-                self.thrust_array = self.thrust_array * thrust_factor
+                #self.time_array = self.time_array * thrust_factor
+                #self.thrust_array = self.thrust_array * thrust_factor
 
                 # cut-off and magnification
-                #self.time_array = self.time_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * time_factor
-                #self.thrust_array = self.thrust_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * thrust_factor
+                self.time_array = self.time_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * time_factor
+                self.time_array -= self.time_array[0]
+                self.thrust_array = self.thrust_array[ self.thrust_array >= 0.01*np.max(self.thrust_array)] * thrust_factor
             else:
                 raise ParameterDefineError('Thrust input type definition is wrong.')
             # END IF
@@ -469,7 +470,9 @@ class Parameters():
                 tf2[np.abs(freq) > fs] = 0
                 # inverse FFT
                 self.thrust_array = np.real(fftpack.ifft(tf2))
-                self.thrust_array[self.thrust_array < 0] = 0
+                self.time_array = self.time_array[self.thrust_array >= 0.01*np.max(self.thrust_array)]
+                self.time_array -= self.time_array[0]
+                self.thrust_array = self.thrust_array[self.thrust_array >= 0.01*np.max(self.thrust_array)]
             # END IF
 
             # -------------------
