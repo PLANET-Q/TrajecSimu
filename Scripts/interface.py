@@ -49,7 +49,7 @@ class TrajecSimu_UI():
 
         return None
 
-    def run_loop(self, n_winddirec = 16, max_windspeed = 8., windspeed_step = 1.):
+    def run_loop(self, n_winddirec = 16, max_windspeed = 8., windspeed_step = 1., output_rootdir='', overwrite_params=None):
         # =============================================
         # A method for running loop to get landing distribution
         #
@@ -91,6 +91,9 @@ class TrajecSimu_UI():
                         ]
         #params_update = [ ['wind_speed', 0.], ['loop_wind_direction', 0.], ['t_para_delay', 0.], ['t_deploy', 0.] ]
 
+        # overwrite parameters
+        if overwrite_params is not None:
+            self.myrocket.Params.overwrite(overwrite_params)
         # """
         # --------------------
         # loop
@@ -171,9 +174,9 @@ class TrajecSimu_UI():
 
         if self.myrocket.Params.params_dict['wind_model'] == 'power-es-hybrid':
             wind_direction_original = self.myrocket.Params.params_dict['wind_direction_original']
-            output_dir = './results/power-es-hybrid/' + str(wind_direction_original) +'deg/'
+            output_dir = os.path.join('./results/', 'power-es-hybrid/', output_rootdir, str(wind_direction_original) +'deg/')
         else:
-            output_dir = './results/' + self.myrocket.Params.params_dict['wind_model'] + '/'
+            output_dir = os.path.join('./results/', self.myrocket.Params.params_dict['wind_model'] + '/', output_rootdir)
         
         # create directory for results
         if not os.path.exists(output_dir):
