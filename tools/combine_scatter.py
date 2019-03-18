@@ -18,13 +18,13 @@ parser.add_argument('scatter_folder',
                     help='誤差分散による各地上風向風速に対する落下分散が入っているフォルダ名')
 parser.add_argument('place',
                     help='射点の地名(izu_sea or noshiro_sea)')
-parser.add_argument('output_filename',
-                    help='出力ファイル名(拡張子は省略してください)')
+parser.add_argument('output_dir',
+                    help='出力先ディレクトリ(拡張子は省略してください)')
 
 parser.add_argument('-f', '--forecast_point_folder',
                     help='誤差分散に用いた予報風通りに風が吹いた場合の落下分散が入っているフォルダ(プロットする場合のみ指定)')
-parser.add_argument('-s', '--shift_to',
-                    help='誤差分散に用いた予報風通りに風が吹いた場合の落下分散が入っているフォルダ(プロットする場合のみ指定)')
+parser.add_argument('-s', '--shift_to_point',
+                    help='シフト先予報ファイル')
 
 args = parser.parse_args()
 
@@ -43,6 +43,7 @@ kmlplot.setKmlByDicts(regulation_param, kml_para)
 wind_direction_array = np.arange(0., 360., 22.5)
 wind_speed_array = np.arange(1., 8.)
 n_speeds = len(wind_speed_array)
+n_directions = len(wind_direction_array)
 
 def getScatterFromExcel(sct_file):
     sct_book = pyxl.load_workbook(sct_file)
@@ -94,6 +95,46 @@ def getRecordFromExcel(sct_file):
     return gonogo, max_alt, max_speed, max_mach, launch_clear, para_speed, max_press
 
 
+diff_bal = np.zeros((n_speeds, n_directions+1, 2))
+diff_para = np.zeros((n_speeds, n_directions+1, 2))
+if args.forecast_point_folder is not None:
+    fore_sct_file = glob.glob(os.path.join(args.forecast_point_folder, 'output_*deg.xlsx'))
+    if len(fore_sct_file) == 0:
+        raise FileNotFoundError('Forecast point file was not found.')
+    
+    fore_sct_file = fore_sct_file[0]
+    fore_bal, fore_para = getScatterFromExcel(fore_sct_file)
+
+    if args.shift_to_point is not None:
+        shift_sct_file = glob.glob(os.path.join(args.shift_to_point, 'output_*deg.xlsx'))
+        if len(fore_sct_file) == 0:
+            raise FileNotFoundError('Shift point file was not found.')
+        
+        shift_sct_file = shift_sct_file[0]
+        shift_bal, shift_para = getScatterFromExcel(shift_sct_file)
+        diff_bal = shift_bal - fore_bal
+        diff_para = shift_para - fore_para
+        for i, wind_speed in enumerate(wind_speed_array):
+            color_r = int(float(i / n_speeds) * 127) + 128
+            drop_coords_bal = kmlplot.dropPoint2Coordinate(shift_bal[i], rail_coord[::-1])
+            drop_coords_para = kmlplot.dropPoint2Coordinate(shift_para[i], rail_coord[::-1])
+
+            for j, fore_direction in enumerate(wind_direction_array):
+                name = 'fore_' + str(wind_speed) + ' [m/s]@' + str(fore_direction) + 'deg'
+                kml_bal.newpoint(name=name, coords=[drop_coords_bal[j]])
+                kml_para.newpoint(name=name, coords=[drop_coords_para[j]])
+    else:
+        for i, wind_speed in enumerate(wind_speed_array):
+            color_r = int(float(i / n_speeds) * 127) + 128
+            drop_coords_bal = kmlplot.dropPoint2Coordinate(fore_bal[i], rail_coord[::-1])
+            drop_coords_para = kmlplot.dropPoint2Coordinate(fore_para[i], rail_coord[::-1])
+
+            for j, fore_direction in enumerate(wind_direction_array):
+                name = 'fore_' + str(wind_speed) + ' [m/s]@' + str(fore_direction) + 'deg'
+                kml_bal.newpoint(name=name, coords=[drop_coords_bal[j]])
+                kml_para.newpoint(name=name, coords=[drop_coords_para[j]])
+
+
 gonogo_all = []
 max_alt_all = []
 max_speed_all = []
@@ -101,7 +142,6 @@ max_mach_all = []
 launch_clear_all = []
 para_speed_all = []
 max_press_all = []
-
 #for sct_folder in scatter_folders:
 for wind_direction in wind_direction_array:
     sct_file = glob.glob(os.path.join(args.scatter_folder, '{}deg/output_*deg.xlsx'.format(wind_direction)))
@@ -110,6 +150,9 @@ for wind_direction in wind_direction_array:
         
     sct_file = sct_file[0]
     bal, para = getScatterFromExcel(sct_file)
+    bal += diff_bal
+    para += diff_para
+
     go, alt, sp, mach, lc, v_para, prs = getRecordFromExcel(sct_file)
     gonogo_all.append(go)
     max_alt_all.append(alt)
@@ -149,7 +192,9 @@ max_Q          = pd.DataFrame(max_press_all[:, :], index = wind_speed_array, col
 v_launch_clear = pd.DataFrame(launch_clear_all[:, :], index = wind_speed_array, columns = wind_direction_array[:])
 v_para_deploy  = pd.DataFrame(para_speed_all[:, :], index = wind_speed_array, columns = wind_direction_array[:])
 
-excel_file = pd.ExcelWriter('test.xlsx')
+if args.shift_to_point is None:
+    excel_file = pd.ExcelWriter(os.path.join(args.output_dir, 'output.xlsx'))
+
 # write dataframe with sheet name
 judge_both.to_excel(excel_file, 'Go-NoGo判定 ')
 max_alt.to_excel(excel_file, '最高高度 ')
@@ -161,22 +206,5 @@ max_Q.to_excel(excel_file, '最大動圧 ')
 # save excel file
 excel_file.save()
 
-if args.forecast_point_folder is not None:
-    fore_sct_file = glob.glob(os.path.join(args.forecast_point_folder, 'output_*deg.xlsx'))
-    if len(fore_sct_file) == 0:
-        raise FileNotFoundError('Forecast point file was not found.')
-    
-    fore_sct_file = fore_sct_file[0]
-    fore_bal, fore_para = getScatterFromExcel(fore_sct_file)
-    for i, wind_speed in enumerate(wind_speed_array):
-        color_r = int(float(i / n_speeds) * 127) + 128
-        drop_coords_bal = kmlplot.dropPoint2Coordinate(fore_bal[i], rail_coord[::-1])
-        drop_coords_para = kmlplot.dropPoint2Coordinate(fore_para[i], rail_coord[::-1])
-
-        for j, fore_direction in enumerate(wind_direction_array):
-            name = 'fore_' + str(wind_speed) + ' [m/s]@' + str(fore_direction) + 'deg'
-            kml_bal.newpoint(name=name, coords=[drop_coords_bal[j]])
-            kml_para.newpoint(name=name, coords=[drop_coords_para[j]])
-
-kml_bal.save(os.path.join(args.scatter_folder, args.output_filename+'_bal.kml'))
-kml_para.save(os.path.join(args.scatter_folder, args.output_filename+'_para.kml'))
+kml_bal.save(os.path.join(args.output_dir, 'scatter_bal.kml'))
+kml_para.save(os.path.join(args.output_dir, 'scatter_para.kml'))
