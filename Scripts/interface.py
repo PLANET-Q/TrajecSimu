@@ -176,7 +176,7 @@ class TrajecSimu_UI():
             wind_direction_original = self.myrocket.Params.params_dict['wind_direction_original']
             output_dir = os.path.join('./results/', 'power-es-hybrid/', output_rootdir, str(wind_direction_original) +'deg/')
         else:
-            output_dir = os.path.join('./results/', self.myrocket.Params.params_dict['wind_model'] + '/', output_rootdir)
+            output_dir = os.path.join('./results/', self.myrocket.Params.params_dict['wind_model'] + '/', output_rootdir+'/')
         
         # create directory for results
         if not os.path.exists(output_dir):
