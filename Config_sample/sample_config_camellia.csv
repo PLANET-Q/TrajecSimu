@@ -1,0 +1,160 @@
+$
+$
+$  ROCKET PARAMETER DEFINITION SAMPLE
+$
+$  by yusuke
+$  PLANET-Q 2019/3/13
+$  Felix-Camelliaパラメータ
+$
+
+$ ----------------------------
+$ rocket airframe parameters
+$ ----------------------------
+$ rocket height [m]
+rocket_height, 2.899
+$ rocket diameter [m]
+rocket_diameter, 0.118
+$ dry mass [kg]
+m_dry, 13.639
+$ propellant mass [kg]
+m_prop, 1.792
+$ center of gravity (CG) location of dry mass from nose tip [m]
+CG_dry, 1.730
+$ center of gravity (CG) location of propellant from nose tip [m]
+CG_prop, 2.216
+
+$ 乾燥時の機体の慣性モーメント [kg-m^2]
+MOI_dry_x, 0.001
+MOI_dry_y, 17.06
+MOI_dry_z, 17.06
+
+$ 推進剤の重心周りの慣性モーメント [kg-m^2]
+MOI_prop_x, 0.001
+MOI_prop_y, 0.64
+MOI_prop_z, 0.64
+
+$ ランチラグのノーズ先端からの位置[m]
+$ 2/26 実測
+$ NOTE: Felix-Camelliaにはラグが3つあるが、2つ以上のラグがある場合は
+$ ノーズ先端から最も遠い2つのラグを採用し、2つのうちでノーズから近い順にlug_1st, lug_2ndとしてください
+lug_1st, 1.232
+lug_2nd, 2.230
+
+$ ----------------------------
+$ rocket aerodynamic parameters (at M = 0.3, AoA ~ 0deg)
+$ ----------------------------
+$ center of pressure (CP) location from nose tip [m]
+CP_body, 2.243
+$ drag coefficient
+Cd0, 0.5
+$ Lift slope [1/rad]
+Cl_alpha, 15.4
+$ pitch damping coefficient
+Cmq, -4.
+
+
+$ ----------------------------
+$ numerical parameters
+$ ----------------------------
+$ time step [s]
+dt, 0.05
+$ max time for computation [s]
+t_max, 2000.
+
+
+$ ----------------------------
+$ launch parameters
+$ ----------------------------
+$ ランチャ仰角[deg]
+$ 普通は70~80度
+$ ここをいじると最高高度やマッハ数、落下点が変わる
+elev_angle, 75
+$ ランチャ方位角[deg], 北=0deg, 東=90deg
+azimuth, 150.
+$ launcher rail lenght [m]
+rail_length, 5.
+
+
+$ ----------------------------
+$ launch parameters
+$ ----------------------------
+$ wind_alt_std: 基準高度(地上風向風速観測点の地面からの高度) [m]
+wind_alt_std, 5.
+$ wind_direction: 基準高度(wind_alt_std)での風の吹いてくる方向(run_singleの場合のみ使う)
+wind_direction, 337.5
+$ wind_speed: 基準高度(wind_alt_std)での風速[m]
+wind_speed, 5.
+$ wind_direction_original: ↓予報誤差分散ループを使う場合だけ指定する。-1はいじらなくていい
+$wind_direction_original, -1.
+
+$ wind_power_coeff: べき則の係数
+wind_power_coeff, 14.
+
+$ wind_model: 風モデルの指定
+$   power: べき則
+$   log: 対数則
+$   forecast: 数値予報モデル
+$   error-statistics: 予報誤差統計モデル
+$   A-B-hybrid: AとBの組み合わせ 
+wind_model, power-forecast-hybrid
+$wind_model, power
+$wind_model, error-statistics
+$wind_model, power-es-hybrid
+
+$ 風モデルに必要なファイル等
+$   (予報モデルを使用する場合のみ)予報値のファイル名
+$   予報ファイルは通常はwind_forecast_csvフォルダ内に入れてください
+forecast_csvname, Config_sample/sample_wind.csv
+$   (予報誤差統計モデルを使用する場合のみ)誤差統計パラメータのファイル名
+$error_stat_filename, Config_sample/error_stat_JST15+15h.json
+
+
+$ ----------------------------
+$ engine parameters
+$ ----------------------------
+$ thrust_input_type: スラストカーブの形式。どちらを指定する場合でも'時刻に対する推力値'のデータが必要
+$ 	'curve_const_t' 一定時間毎のサンプリングの場合に使用できる。LPFフィルタリングによるノイズ除去を行う。'thrust_dt'でサンプリング間隔[s]を指定する必要がある
+$   'time_curve' 一定間隔でのサンプリングではなくても使用できる。原理上LPFフィルタリングは行えない。
+$thrust_input_type, time_curve
+thrust_input_type, curve_const_t
+thrust_dt, 0.0001
+
+$ curve_fitting: スラストの多項式近似によるフィッティングを行うかどうか。デフォルトtrue
+curve_fitting, false
+$ fitting_order: 多項式フィッティングの最大次数。デフォルト15
+$ NOTE: LPFを使用する場合はカットオフ周波数(デフォルト10)より大きい数にすると結果がでたらめになります。
+fitting_order, 9
+
+$ thrust_filename: スラストカーブのファイル名
+$   スラストカーブファイルは通常はThrust_curve_csvフォルダ内に入れてください
+thrust_filename, Config_sample/sample_thrust_camellia.csv
+
+$ thrust_mag_factor: スラストカーブの振幅の倍率。デフォルト1。
+$ 設計段階でまだスラストの実測ができない状態では設計値よりも推力を低めに見積もって回すなどの場合に使用
+thrust_mag_factor, 1.0
+$ time_mag_factor: スラストカーブの時間方向の倍率。デフォルト1。
+time_mag_factor, 1.0
+
+
+$ ----------------------------
+$ parachute parameters
+$ ----------------------------
+$ 1段目のパラシュート展開の頂点検知からの秒数[s]
+t_para_delay, 1
+$ 1段目パラシュートの抗力係数
+Cd_para, 1.2
+$ 1段目パラシュートの有効面積
+S_para, 0.215
+$ 2段目のパラシュートがあるかどうか。
+second_para, True
+$ 2段目パラシュート展開の離床からの秒数
+$ 注意：2段目の展開は'alt_para2'パラメータで設定した高度に到達するか
+$      離床から't_deploy_2'で設定した秒数経過するかどちらかの条件で開きます
+$      つまり早く条件を満たした方が採用されるので、例えば高度検知のみで試したいときはt_deploy_2を1000とかにすると良い
+t_deploy_2, 100.
+$ 2段目パラシュート展開高度
+alt_para_2, 250.
+$ 2段目パラシュートの抗力係数
+Cd_para_2, 1.2
+$ 2段目パラシュートの有効面積
+S_para_2, 3.39
