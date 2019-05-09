@@ -189,8 +189,8 @@ class TrajecSimu_UI():
         # create instance for postprocessing
         post_dist = PostProcess_dist(self.launch_location)
         elev_angle = self.myrocket.Params.elev_angle  # launcher elev angle
-        post_dist.plot_sct(self.loc_bal,  wind_speed_array, elev_angle, 'Ballistic', savedir=output_dir)   # plot ballistic scatter
-        post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute', savedir=output_dir)   # plot parachute scatter
+        #post_dist.plot_sct(self.loc_bal,  wind_speed_array, elev_angle, 'Ballistic', savedir=output_dir)   # plot ballistic scatter
+        #post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute', savedir=output_dir)   # plot parachute scatter
 
         # -------------------------------
         # output scatter map to kml
