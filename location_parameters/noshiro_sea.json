@@ -1,0 +1,21 @@
+[
+    {
+      "name":"rail",
+      "type":"circle",
+      "center":[40.242865, 140.010450],
+      "radius":50.0
+    },
+    {
+      "name":"range",
+      "type":"circle",
+      "center":[40.245567,	139.993297],
+      "radius":1500.0
+    },
+    {
+      "name":"Restricted Line",
+      "type":"line",
+      "point1":[40.23665, 140.00579],
+      "point2":[40.25126, 140.00929]
+    }
+  ]
+  
