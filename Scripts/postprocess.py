@@ -607,6 +607,17 @@ class PostProcess_dist():
     def __init__(self, loc):
         # get launch location: 'izu' or 'noshiro_sea'
         self.launch_location = loc
+        self.set_coordinate(loc)
+    
+    def set_coordinate(self, loc):
+        if loc == 'izu':
+            self.set_coordinate_izu()
+        elif loc == 'izu_sea':
+            self.set_coordinate_izu_sea()
+        elif loc == 'noshiro_sea':
+            self.set_coordinate_noshiro()
+        else:
+            raise ValueError('invalid launch location: '+str(loc))
 
     # ------------------------------
     # method for setup landing distribution coordinate
@@ -788,6 +799,22 @@ class PostProcess_dist():
 
         for i in range(self.xy_point[:,0].size):
             self.xy_point[i,:] = mat_rot @ self.xy_point[i,:]
+        
+        #calculate intersections of "inside_circle" and "over_line"
+            center1 = sg.Point(self.xy_center[0],self.xy_center[1])
+            radius1 = self.hachiya_radius
+            circle1 = sg.Circle(center1,radius1)
+            line = sg.Line(sg.Point(self.xy_point[0,0],self.xy_point[0,1]), sg.Point(self.xy_point[1,0],self.xy_point[1,1]))
+            result1 = sg.intersection(circle1, line)
+            intersection1_1 = np.array([float(result1[0].x), float(result1[0].y)])
+            intersection1_2 = np.array([float(result1[1].x), float(result1[1].y)])
+
+            #caluculate equation of hachiya_line(="over_line")
+            self.a = (self.xy_point[1,1]-self.xy_point[0,1])/(self.xy_point[1,0]-self.xy_point[0,0])
+            self.b = (self.xy_point[0,1]*self.xy_point[1,0]-self.xy_point[1,1]*self.xy_point[0,0])/(self.xy_point[1,0]-self.xy_point[0,0])
+            self.x = np.arange(intersection1_1[0],intersection1_2[0],1)
+            self.y = self.a*self.x + self.b
+            self.hachiya_line = np.array([self.a, self.b])
 
         return None
 
@@ -795,6 +822,17 @@ class PostProcess_dist():
     def set_coordinate_noshiro(self):
         # !!!! hardcoding for 2018 noshiro umi_uchi
         # Set limit range in maps (Defined by North latitude and East longitude)
+
+        # -----------------------------------
+        #  Load permitted range here
+        # -----------------------------------
+        with open('location_parameters/noshiro_sea.json', 'r') as f:
+            self.regulations = json.load(f)
+        for reg in self.regulations:
+            if reg['name'] == 'rail':
+                self.point_rail = reg['center']
+                break
+        
         # -----------------------------------
         #  Define permitted range here
         # -----------------------------------
@@ -867,6 +905,22 @@ class PostProcess_dist():
         for i in range(self.xy_point[:,0].size):
             self.xy_point[i,:] = mat_rot @ self.xy_point[i,:]
 
+        #calculate intersections of "inside_circle" and "over_line"
+        center1 = sg.Point(self.xy_center[0],self.xy_center[1])
+        radius1 = self.hachiya_radius
+        circle1 = sg.Circle(center1,radius1)
+        line = sg.Line(sg.Point(self.xy_point[0,0],self.xy_point[0,1]), sg.Point(self.xy_point[1,0],self.xy_point[1,1]))
+        result1 = sg.intersection(circle1, line)
+        intersection1_1 = np.array([float(result1[0].x), float(result1[0].y)])
+        intersection1_2 = np.array([float(result1[1].x), float(result1[1].y)])
+
+        #caluculate equation of hachiya_line(="over_line")
+        self.a = (self.xy_point[1,1]-self.xy_point[0,1])/(self.xy_point[1,0]-self.xy_point[0,0])
+        self.b = (self.xy_point[0,1]*self.xy_point[1,0]-self.xy_point[1,1]*self.xy_point[0,0])/(self.xy_point[1,0]-self.xy_point[0,0])
+        self.x = np.arange(intersection1_1[0],intersection1_2[0],1)
+        self.y = self.a*self.x + self.b
+        self.hachiya_line = np.array([self.a, self.b])
+
         return None
 
     def judge_in_range(self, drop_point):
@@ -888,7 +942,7 @@ class PostProcess_dist():
         if self.launch_location == 'izu':
             #for IZU URA-SABAKU!!
             # Set limit range in maps
-            self.set_coordinate_izu()
+            #self.set_coordinate_izu()
 
             # for tamura version
             # Set map image
@@ -940,7 +994,7 @@ class PostProcess_dist():
         elif self.launch_location == 'izu_sea':
             #for IZU set
             # Set limit range in maps
-            self.set_coordinate_izu_sea()
+            #self.set_coordinate_izu_sea()
 
             # for tamura version
             # Set map image
@@ -960,21 +1014,6 @@ class PostProcess_dist():
             img_top = img_origin[1] * pixel2meter
             img_bottom = -1.0 * (img_height - img_origin[1]) * pixel2meter
 
-            #calculate intersections of "inside_circle" and "over_line"
-            center1 = sg. Point(self.xy_center[0],self.xy_center[1])
-            radius1 = self.hachiya_radius
-            circle1 = sg.Circle(center1,radius1)
-            line = sg.Line(sg.Point(self.xy_point[0,0],self.xy_point[0,1]), sg.Point(self.xy_point[1,0],self.xy_point[1,1]))
-            result1 = sg.intersection(circle1, line)
-            intersection1_1 = np.array([float(result1[0].x), float(result1[0].y)])
-            intersection1_2 = np.array([float(result1[1].x), float(result1[1].y)])
-
-            #caluculate equation of hachiya_line(="over_line")
-            self.a = (self.xy_point[1,1]-self.xy_point[0,1])/(self.xy_point[1,0]-self.xy_point[0,0])
-            self.b = (self.xy_point[0,1]*self.xy_point[1,0]-self.xy_point[1,1]*self.xy_point[0,0])/(self.xy_point[1,0]-self.xy_point[0,0])
-            self.x = np.arange(intersection1_1[0],intersection1_2[0],1)
-            self.y = self.a*self.x + self.b
-            self.hachiya_line = np.array([self.a, self.b])
 
             fig = plt.figure(figsize=(10,10))
 
@@ -1003,7 +1042,7 @@ class PostProcess_dist():
         elif self.launch_location == 'noshiro_sea':
             #for NOSHIRO SEA!!
             # Set limit range in maps
-            self.set_coordinate_noshiro()
+            #self.set_coordinate_noshiro()
 
             # Set map image
             img_map = Image.open("./map/noshiro_new_rotate.png")
@@ -1022,21 +1061,7 @@ class PostProcess_dist():
             img_top = img_origin[1] * pixel2meter
             img_bottom = -1.0 * (img_height - img_origin[1]) * pixel2meter
 
-            #calculate intersections of "inside_circle" and "over_line"
-            center1 = sg. Point(self.xy_center[0],self.xy_center[1])
-            radius1 = self.hachiya_radius
-            circle1 = sg.Circle(center1,radius1)
-            line = sg.Line(sg.Point(self.xy_point[0,0],self.xy_point[0,1]), sg.Point(self.xy_point[1,0],self.xy_point[1,1]))
-            result1 = sg.intersection(circle1, line)
-            intersection1_1 = np.array([float(result1[0].x), float(result1[0].y)])
-            intersection1_2 = np.array([float(result1[1].x), float(result1[1].y)])
-
-            #caluculate equation of hachiya_line(="over_line")
-            self.a = (self.xy_point[1,1]-self.xy_point[0,1])/(self.xy_point[1,0]-self.xy_point[0,0])
-            self.b = (self.xy_point[0,1]*self.xy_point[1,0]-self.xy_point[1,1]*self.xy_point[0,0])/(self.xy_point[1,0]-self.xy_point[0,0])
-            self.x = np.arange(intersection1_1[0],intersection1_2[0],1)
-            self.y = self.a*self.x + self.b
-            self.hachiya_line = np.array([self.a, self.b])
+            
 
             # plot setting
             plt.figure(figsize=(10,10))
