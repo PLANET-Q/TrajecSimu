@@ -11,34 +11,49 @@ Might have some problems on Windows/Linux.
 
 ## 使い方
 
-### 必要なもの
-- Python3
-- Pythonライブラリ: numpy, scipy, pandas, matplotlib, numpy-quaternion(https://github.com/moble/quaternion)
+### 必要なPythonパッケージ
+- numpy
+- scipy
+- pandas
+- matplotlib
+- numpy-quaternion(https://github.com/moble/quaternion)
+- numba
+- openpyxl
+- simplekml
+- pillow
+- sympy
+
+pipを用いてインストールする場合は以下のコマンドを実行して依存パッケージをインストールします
+
+```
+pip install numpy scipy pandas matplotlib numpy-quaternion numba openpyxl simplekml pillow sympy
+```
 
 ### インストール
 
 #### ZIPダウンロード
 下記をクリックしてZIPダウンロード→展開
 
-https://github.com/yamamotsu/TrajecSimu/archive/master.zip
+https://github.com/PLANET-Q/TrajecSimu/archive/master.zip
 
 #### gitでインストール
 ```sh
-$ git clone https://github.com/yamamotsu/TrajecSimu
+$ git clone https://github.com/PLANET-Q/TrajecSimu
 ```
 
 ### サンプルコードを実行
-cloneまたはダウンロードした`TrajecSimu`のフォルダをコマンドプロンプトで開き,
+cloneまたはダウンロードした`TrajecSimu`のフォルダをコマンドプロンプト/ターミナルで開き,
 `python driver_sample.py`でサンプルコードを実行.
 
-`Thrustcurve_sample`内の`sample_thrust.csv`はエンジン推力データ(スラストカーブ)のサンプル,
-`Config_sample`内の`sample_config.csv`はロケットパラメータ設定ファイルのサンプルです.
+`Config_sample`内の`sample_config_camellia.csv`はロケットパラメータ設定ファイルのサンプル,
+`sample_thrust_camellia.csv`はエンジン推力データ(スラストカーブ)のサンプル,
+`sample_wind.csv`は数値予報風データのサンプルです。
 
 ## ライセンス
 
 このソフトウェアはMITライセンスのもとで公開されています.
 
-[MIT](https://github.com/yamamotsu/TrajecSimu/blob/master/LICENSE)
+[MIT](https://github.com/PLANET-Q/TrajecSimu/blob/master/LICENSE)
 
 ## Author
 
