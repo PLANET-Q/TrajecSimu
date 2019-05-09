@@ -224,7 +224,6 @@ class TrajecSimu_UI():
             permitted_area_for_para["over_line"]     = post_dist.hachiya_line
             permitted_area_for_bal['inside_center']  = post_dist.xy_center
             permitted_area_for_bal['inside_radius']  = post_dist.hachiya_radius
-            permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
             permitted_area_for_bal["outside_centers"]= tmp_centers
             permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
 
@@ -233,10 +232,10 @@ class TrajecSimu_UI():
             # permitted range for Izu sea (2018)
             permitted_area_for_para['inside_center'] = post_dist.xy_center
             permitted_area_for_para['inside_radius'] = post_dist.hachiya_radius
-            permitted_area_for_para["over_line"]     = post_dist.hachiya_line
+            #permitted_area_for_para["over_line"]     = post_dist.hachiya_line
+            permitted_area_for_para["under_line"]     = post_dist.hachiya_line
             permitted_area_for_bal['inside_center']  = post_dist.xy_center
             permitted_area_for_bal['inside_radius']  = post_dist.hachiya_radius
-            permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
             permitted_area_for_bal["outside_centers"]= tmp_centers
             permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
 
