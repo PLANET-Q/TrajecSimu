@@ -3,9 +3,10 @@
 """
 Created on Thu Jan 18 12:53:42 2018
 
-@author: shugo
+@author: shugo, kyoko
 """
 
+import os
 import numpy as np
 import pandas as pd
 import subprocess
@@ -13,12 +14,13 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 from Scripts.trajectory_main import Trajec_run
 from Scripts.postprocess import PostProcess_single, PostProcess_dist, JudgeInside
-
+from Scripts.kmlplot import output_kml
+import json
 
 class TrajecSimu_UI():
     # class for trajectory simulation interface
 
-    def __init__(self, csv_filename, loc='noshiro_sea'):
+    def __init__(self, csv_filename, loc='izu_sea'):
         # =============================================
         # This method is called when an instance is created
         #
@@ -47,7 +49,7 @@ class TrajecSimu_UI():
 
         return None
 
-    def run_loop(self, n_winddirec = 16, max_windspeed = 8., windspeed_step = 1.):
+    def run_loop(self, n_winddirec = 16, max_windspeed = 8., windspeed_step = 1., output_rootdir='', overwrite_params=None):
         # =============================================
         # A method for running loop to get landing distribution
         #
@@ -67,7 +69,7 @@ class TrajecSimu_UI():
         # --------------------
         n1 = len(wind_speed_array)
         n2 = len(wind_direction_array)
-        self.loc_bal      = np.zeros((n1, n2, 2))    # ballistic landing location
+        self.loc_bal      = np.zeros((n1, n2, 2))    #  landing location
         self.loc_para     = np.zeros((n1, n2, 2))    # parachute fall landing location
         self.max_alt      = np.zeros((n1, n2))       # max altitude
         self.max_vel      = np.zeros((n1, n2))       # max velocity
@@ -80,8 +82,18 @@ class TrajecSimu_UI():
         self.max_accel = np.zeros((n1, n2))
 
         # initialize array for parameter update
-        params_update = [ ['wind_speed', 0.], ['wind_direction', 0.], ['t_para_delay', 0.], ['t_deploy', 0.] ]
+        params_update = [ 
+                            ['wind_speed', 0.], 
+                            ['wind_direction', 0.],
+                            ['t_para_delay', 0.],
+                            ['t_deploy', 0.],
+                            ['wind_direction_original', self.myrocket.Params.params_dict['wind_direction']]
+                        ]
+        #params_update = [ ['wind_speed', 0.], ['loop_wind_direction', 0.], ['t_para_delay', 0.], ['t_deploy', 0.] ]
 
+        # overwrite parameters
+        if overwrite_params is not None:
+            self.myrocket.Params.overwrite(overwrite_params)
         # """
         # --------------------
         # loop
@@ -116,7 +128,7 @@ class TrajecSimu_UI():
                 post_bal = PostProcess_single(self.myrocket)
                 post_bal.postprocess('maxval')
                 # record landing location
-                self.record_loop_result('bal', i_speed,i_angle, post_bal)
+                self.record_loop_result('bal', i_speed, i_angle, post_bal)
 
                 # ---------------------------------
                 # compute landing point for parachute fall
@@ -160,19 +172,42 @@ class TrajecSimu_UI():
         self.loc_para = np.dstack( (tmpx, tmpy) )
         """
 
+        if self.myrocket.Params.params_dict['wind_model'] == 'power-es-hybrid':
+            wind_direction_original = self.myrocket.Params.params_dict['wind_direction_original']
+            output_dir = os.path.join('./results/', 'power-es-hybrid/', output_rootdir, str(wind_direction_original) +'deg/')
+        else:
+            output_dir = os.path.join('./results/', self.myrocket.Params.params_dict['wind_model'] + '/', output_rootdir)
+        
         # create directory for results
-        try:
-            subprocess.run(['mkdir', 'results'])
-        except:
-            pass
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
         # -------------------------------
         #  plot landing points scatter map
         # -------------------------------
         # create instance for postprocessing
         post_dist = PostProcess_dist(self.launch_location)
         elev_angle = self.myrocket.Params.elev_angle  # launcher elev angle
-        post_dist.plot_sct(self.loc_bal,  wind_speed_array, elev_angle, 'Ballistic')   # plot ballistic scatter
-        post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute')   # plot parachute scatter
+        post_dist.plot_sct(self.loc_bal,  wind_speed_array, elev_angle, 'Ballistic', savedir=output_dir)   # plot ballistic scatter
+        post_dist.plot_sct(self.loc_para, wind_speed_array, elev_angle, 'Parachute', savedir=output_dir)   # plot parachute scatter
+
+        # -------------------------------
+        # output scatter map to kml
+        # -------------------------------
+        output_kml(
+            self.loc_bal,
+            post_dist.point_rail,
+            wind_speed_array,
+            post_dist.regulations,
+            output_dir + 'plot_bal.kml'
+            )
+        output_kml(
+            self.loc_para,
+            post_dist.point_rail,
+            wind_speed_array,
+            post_dist.regulations,
+            output_dir + 'plot_para.kml'
+            )
 
         # -------------------------------
         #  define permitted ranges
@@ -191,6 +226,20 @@ class TrajecSimu_UI():
             permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
             permitted_area_for_bal["outside_centers"]= tmp_centers
             permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
+
+
+        elif self.launch_location == 'izu_sea':
+            # permitted range for Izu sea (2018)
+            permitted_area_for_para['inside_center'] = post_dist.xy_center
+            permitted_area_for_para['inside_radius'] = post_dist.hachiya_radius
+            permitted_area_for_para["over_line"]     = post_dist.hachiya_line
+            permitted_area_for_bal['inside_center']  = post_dist.xy_center
+            permitted_area_for_bal['inside_radius']  = post_dist.hachiya_radius
+            permitted_area_for_bal["over_line"]      = post_dist.hachiya_line
+            permitted_area_for_bal["outside_centers"]= tmp_centers
+            permitted_area_for_bal["outside_radius"] = post_dist.lim_radius
+
+
         elif self.launch_location == 'izu':
             # premitted range for Izu dessert (2018)
             permitted_area_for_para['range']         = post_dist.xy_range
@@ -200,7 +249,7 @@ class TrajecSimu_UI():
             permitted_area_for_bal['outside_centers']= tmp_centers
             permitted_area_for_bal['outside_radius'] = post_dist.lim_radius
         else:
-            raise NotImplementedError('The launch site is not implemented. "Noshiro_sea" or "izu" are currently available')
+            raise NotImplementedError('The launch site is not implemented. "Noshiro_sea" or "izu" or "izu_sea" are currently available')
         # END IF
 
         # -------------------------------
@@ -258,7 +307,7 @@ class TrajecSimu_UI():
         # ------------------------------
         # save information to excel file
         # ------------------------------
-        self.output_loop_result(wind_speed_array, wind_direction_array)
+        self.output_loop_result(wind_speed_array, wind_direction_array, output_dir)
 
         return None
 
@@ -294,7 +343,7 @@ class TrajecSimu_UI():
 
         return None
 
-    def output_loop_result(self,wind_speed_array, wind_direction_array):
+    def output_loop_result(self,wind_speed_array, wind_direction_array, savedir='./results/'):
         # convert np.arrays into pandas dataframes
         ws = wind_speed_array
         wd = wind_direction_array
@@ -316,7 +365,7 @@ class TrajecSimu_UI():
 
 
         # define output file name
-        output_name = 'results/output_' + str(int(self.myrocket.Params.elev_angle)) + 'deg.xlsx'
+        output_name = savedir + 'output_' + str(int(self.myrocket.Params.elev_angle)) + 'deg.xlsx'
         excel_file = pd.ExcelWriter(output_name)
 
         # write dataframe with sheet name
@@ -336,12 +385,11 @@ class TrajecSimu_UI():
         # Max acceleration
         max_accel.to_excel(excel_file, '最大加速度 ')
 
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
+        
         # save excel file
-        try:
-            excel_file.save()
-        except:
-            subprocess.run(['mkdir', 'results'])
-            excel_file.save()
+        excel_file.save()
 
         return None
 

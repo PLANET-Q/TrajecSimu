@@ -16,6 +16,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import sympy.geometry as sg
 import quaternion
 from Scripts.errors import *
+import json
 
 
 """
@@ -77,9 +78,8 @@ class PostProcess_single():
             # cut off useless info out of ODE solution array
             self.myrocket.trajectory.solution = self.myrocket.trajectory.solution[0:len(time),:]
 
-            alt_axis = self.myrocket.trajectory.solution[:,2]
-            # alt_axis = np.arange(0, 5000, 1)
-
+            # alt_axis = self.myrocket.trajectory.solution[:, 2]
+            alt_axis = np.arange(0, 4500)
             # *** plot and show all results ***
             # thrust data echo
             self.echo_thrust(True)
@@ -575,7 +575,6 @@ class PostProcess_single():
         plt.xlabel('t [s]')
         plt.ylabel('omega [rad/s]')
         plt.grid()
-        #plt.show
 
         return None
 
@@ -587,10 +586,10 @@ class PostProcess_single():
         wind_array = []
         wind_func = self.myrocket.trajectory.Params.wind
         for h in alt:
-            wind_array.append(wind_func(h))
+            wind_array.append(wind_func(h)[:2])
 
         wind_array = np.array(wind_array).T
-
+        print('wind array: ', np.shape(wind_array))
         plt.plot(wind_array[0], wind_array[1], alt, lw=1.5)
 
         ax.set_xlabel('u [m/s]')
@@ -615,6 +614,16 @@ class PostProcess_dist():
     def set_coordinate_izu(self):
         # !!!! hardcoding for 2018 izu ura-sabaku
         # Set limit range in maps (Defined by North latitude and East longitude)
+
+        # -----------------------------------
+        #  Load permitted range from json
+        # -----------------------------------
+        with open('location_parameters/izu.json', 'r') as f:
+            self.regulations = json.load(f)
+        for reg in self.regulations:
+            if reg['name'] == 'rail':
+                self.point_rail = reg['center']
+                break
         # -----------------------------------
         #  Define permitted range
         # -----------------------------------
@@ -690,6 +699,98 @@ class PostProcess_dist():
         """
 
         return None
+
+    def set_coordinate_izu_sea(self):
+        # !!!! hardcoding for 2018 noshiro umi_uchi
+        # Set limit range in maps (Defined by North latitude and East longitude)
+
+        # -----------------------------------
+        #  Load permitted range here
+        # -----------------------------------
+        with open('location_parameters/izu_sea.json', 'r') as f:
+            self.regulations = json.load(f)
+        for reg in self.regulations:
+            if reg['name'] == 'rail':
+                self.point_rail = reg['center']
+                break
+
+        # -----------------------------------
+        #  Define permitted range here
+        # -----------------------------------
+        #used as "outside_centers" & "outside_radius", meaning NOT drop inside the circle
+        point_rail = np.array([34.679730, 139.438373])
+        point_switch = np.array([34.679730, 139.438373])
+        point_tent = np.array([34.679730, 139.438373])
+        self.lim_radius = 50.0
+
+        #used as "inside_center" & "inside_radius", meaning MUST drop inside the circle
+        self.hachiya_radius = 2500.0 # [m]
+        point_center = np.array([34.661857 , 139.454987]) #center of circle
+
+        #used as two points of "over_line", meaning MUST drop over the line
+        point_point = np.array([[34.684392 , 139.454677],
+                                [34.667917, 139.428718],
+                                ])
+
+        # Set magnetic declination
+        mag_dec = -7.53  # [deg] @ noshiro
+
+        #to add if necessary
+        #used as "under_line", meaning MUST drop under(south) the line
+        # point_point2 = np.array([[40.23665, 140.00579],
+        #                        [40.27126, 140.00929],
+        #                       ])
+
+        # -------- End definition --------
+
+        # Define convert value from lat/long[deg] to meter[m]
+        origin = point_rail
+        earth_radius = 6378150.0    # [km]
+        lat2met = 2 * math.pi * earth_radius / 360.0
+        lon2met = 2 * math.pi * earth_radius * np.cos(np.deg2rad(origin[0])) / 360.0
+
+        # Convert from absolute coordinate to relative coordinate
+        point_rail = point_rail - origin
+        point_switch = point_switch - origin
+        point_tent = point_tent - origin
+        point_point = point_point - origin
+        point_center = point_center - origin
+
+
+        # Convert from lat/long to meter (ENU coordinate)
+        self.xy_rail = np.zeros(2)
+        self.xy_switch = np.zeros(2)
+        self.xy_tent = np.zeros(2)
+        self.xy_point = np.zeros([point_point[:,0].size, 2])
+        self.xy_center = np.zeros(2)
+
+
+        self.xy_switch[1] = lat2met * point_switch[0]
+        self.xy_switch[0] = lon2met * point_switch[1]
+        self.xy_tent[1] = lat2met * point_tent[0]
+        self.xy_tent[0] = lon2met * point_tent[1]
+        self.xy_point[:,1] = lat2met * point_point[:,0] #y of all
+        self.xy_point[:,0] = lon2met * point_point[:,1] #x of all
+        self.xy_center[1] = lat2met * point_center[0]
+        self.xy_center[0] = lon2met * point_center[1]
+        self.xy_rail[1] = lat2met * point_rail[0]
+        self.xy_rail[0] = lon2met * point_rail[1]
+
+
+        mag_dec = np.deg2rad(mag_dec)
+        mat_rot = np.array([[np.cos(mag_dec), -1 * np.sin(mag_dec)],
+                            [np.sin(mag_dec), np.cos(mag_dec)]])
+
+        # Rotate by magnetic declination angle
+        self.xy_switch = mat_rot @ self.xy_switch
+        self.xy_tent = mat_rot @ self.xy_tent
+        self.xy_center = mat_rot @ self.xy_center
+
+        for i in range(self.xy_point[:,0].size):
+            self.xy_point[i,:] = mat_rot @ self.xy_point[i,:]
+
+        return None
+
 
     def set_coordinate_noshiro(self):
         # !!!! hardcoding for 2018 noshiro umi_uchi
@@ -833,7 +934,71 @@ class PostProcess_dist():
             """
             # plot landing point for 2018/3/23
             plt.plot(self.xy_land[0], self.xy_land[1], 'r*', markersize = 12, label='actual langing point')
+
             """
+
+        elif self.launch_location == 'izu_sea':
+            #for IZU set
+            # Set limit range in maps
+            self.set_coordinate_izu_sea()
+
+            # for tamura version
+            # Set map image
+            img_map = Image.open("./map/izu_sea_mag.png")
+            img_list = np.asarray(img_map)
+            img_height = img_map.size[0]
+            img_width = img_map.size[1]
+            #img_origin = np.array([609, 510])   # TODO : compute by lat/long of launcher point
+            img_origin = np.array([517, 201])
+            #pixel2meter = (139.431463 - 139.41283)/1800.0 * lon2met
+            #pixel2meter = 4.09836066
+            pixel2meter = 2.94117647
+
+            # Define image range
+            img_left =   -1.0* img_origin[0] * pixel2meter
+            img_right = (img_width - img_origin[0]) * pixel2meter
+            img_top = img_origin[1] * pixel2meter
+            img_bottom = -1.0 * (img_height - img_origin[1]) * pixel2meter
+
+            #calculate intersections of "inside_circle" and "over_line"
+            center1 = sg. Point(self.xy_center[0],self.xy_center[1])
+            radius1 = self.hachiya_radius
+            circle1 = sg.Circle(center1,radius1)
+            line = sg.Line(sg.Point(self.xy_point[0,0],self.xy_point[0,1]), sg.Point(self.xy_point[1,0],self.xy_point[1,1]))
+            result1 = sg.intersection(circle1, line)
+            intersection1_1 = np.array([float(result1[0].x), float(result1[0].y)])
+            intersection1_2 = np.array([float(result1[1].x), float(result1[1].y)])
+
+            #caluculate equation of hachiya_line(="over_line")
+            self.a = (self.xy_point[1,1]-self.xy_point[0,1])/(self.xy_point[1,0]-self.xy_point[0,0])
+            self.b = (self.xy_point[0,1]*self.xy_point[1,0]-self.xy_point[1,1]*self.xy_point[0,0])/(self.xy_point[1,0]-self.xy_point[0,0])
+            self.x = np.arange(intersection1_1[0],intersection1_2[0],1)
+            self.y = self.a*self.x + self.b
+            self.hachiya_line = np.array([self.a, self.b])
+
+            fig = plt.figure(figsize=(10,10))
+
+            # plot setting
+            ax = fig.add_subplot(111)
+            color_line = '#ffff33'    # Yellow
+            color_circle = 'r'    # Red
+
+            #Set circle object
+            cir_rail = patches.Circle(xy=self.xy_rail, radius=self.lim_radius, ec=color_circle, fill=False)
+            cir_switch = patches.Circle(xy=self.xy_switch, radius=self.lim_radius, ec=color_circle, fill=False)
+            cir_tent = patches.Circle(xy=self.xy_tent, radius=self.lim_radius, ec=color_circle, fill=False)
+            ax.add_patch(cir_rail)
+            ax.add_patch(cir_switch)
+            ax.add_patch(cir_tent)
+
+            # plot map
+            plt.imshow(img_list, extent=(img_left, img_right, img_bottom, img_top))
+
+            # Write landing permission range
+            plt.plot(self.xy_rail[0], self.xy_rail[1], 'r.', color=color_circle, markersize = 12)
+            plt.plot(self.xy_switch[0], self.xy_switch[1], '.', color=color_circle)
+            plt.plot(self.xy_tent[0], self.xy_tent[1], '.', color=color_circle)
+            #plt.plot(self.xy_range[:,0], self.xy_range[:,1], '--', color=color_line)
 
         elif self.launch_location == 'noshiro_sea':
             #for NOSHIRO SEA!!
@@ -902,11 +1067,11 @@ class PostProcess_dist():
             plt.plot(self.xy_center[0], self.xy_center[1], '.', color=color_circle)
 
         else:
-            raise NotImplementedError('Available location is: izu or noshiro_sea' )
+            raise NotImplementedError('Available location is: izu or izu_sea or noshiro_sea' )
 
         return None
 
-    def plot_sct(self, drop_point, wind_speed_array, launcher_elev_angle, fall_type):
+    def plot_sct(self, drop_point, wind_speed_array, launcher_elev_angle, fall_type, savedir='./results/'):
         # -------------------
         # plot landing distribution
         # hardcoded for noshiro
@@ -940,12 +1105,13 @@ class PostProcess_dist():
 
 
         # output_name = "output/Figure_elev_" + str(int(rail_elev)) + ".png"
-        output_name = 'results/Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.eps'
+        #output_name = savedir + 'Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.eps'
+        output_name = savedir + 'Figure_' + fall_type + '_elev' + str(int(launcher_elev_angle)) + 'deg.png'
 
         plt.title(title_name)
         plt.legend()
         plt.savefig(output_name, bbox_inches='tight')
-        plt.show()
+        #plt.show()
 
 """
 # class for auto-judge
@@ -1061,7 +1227,8 @@ class JudgeInside():
        # Judge under the line
         if line_flag2 == True:
 
-           if check_point[1] < self.over_line[0]*check_point[0]+self.over_line[1]:
+           if check_point[1] > self.over_line[0]*check_point[0]+self.over_line[1]:
+               print('Judge:False by over_line')
                judge_result = np.bool(False)
 
         #-------------------------------------------------------------
@@ -1139,7 +1306,7 @@ class JudgeInside():
 
 if __name__ == '__main__':
     tmp = PostProcess_dist('noshiro_sea')
-    tmp.set_coordinate_noshiro()
+    tmp.set_coordinate_noshiro_sea()
     tmp.plot_map()
 
 #END IF

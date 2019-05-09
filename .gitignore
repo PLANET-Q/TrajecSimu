@@ -1,7 +1,15 @@
 *.pyc
 *.xlsx
 Archive/
+results/
 *.DS_Store
 *.eps
-*.png
 *.ipynb
+*.kml
+Thrust_curve_csv/*
+Parameters_csv/*
+wind_forecast_csv/*
+.vscode
+driver_*.py
+*.code-workspace
+statistics_parameters/*

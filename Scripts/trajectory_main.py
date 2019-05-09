@@ -641,7 +641,7 @@ class Trajec_main():
             CG = (self.Params.CG_dry*self.Params.m_dry + self.Params.CG_prop*r*self.Params.m_prop) / mass
             # total MOI using parallel axis theorem
             tmp = np.array([0.,1.,1.])
-            MOI = self.Params.MOI_dry + tmp*self.Params.m_dry*(CG-self.Params.CG_dry)**2. + r*self.Params.MOI_prop + tmp*(CG-self.Params.CG_prop)*(r*self.Params.m_prop)**2.
+            MOI = self.Params.MOI_dry + tmp*self.Params.m_dry*(CG-self.Params.CG_dry)**2. + r*self.Params.MOI_prop + tmp*(r*self.Params.m_prop)*(CG-self.Params.CG_prop)**2.
 
             # ---------------------------------
             # finite differencing for d(MOI)/dt, dm/dt
@@ -654,13 +654,13 @@ class Trajec_main():
             # total CG location
             CG2 = (self.Params.CG_dry*self.Params.m_dry + self.Params.CG_prop*r2*self.Params.m_prop) / (self.Params.m_dry + r2*self.Params.m_prop)
             # total MOI using parallel axis theorem
-            MOI2 = self.Params.MOI_dry + tmp*self.Params.m_dry*(CG2-self.Params.CG_dry)**2. + r2*self.Params.MOI_prop + tmp*(CG2-self.Params.CG_prop)*(r2*self.Params.m_prop)**2.
+            MOI2 = self.Params.MOI_dry + tmp*self.Params.m_dry*(CG2-self.Params.CG_dry)**2. + r2*self.Params.MOI_prop + tmp*(r2*self.Params.m_prop)*(CG2-self.Params.CG_prop)**2.
 
             Impulse_so_far = integrate.trapz(self.Params.thrust_function(np.linspace(0., t-h)), np.linspace(0., t-h))
             r3 = (1- Impulse_so_far/self.Params.Impulse_total)  # impulse ratio
             # mass3 = self.m_dry + r3 * self.m_prop
             CG3 = (self.Params.CG_dry*self.Params.m_dry + self.Params.CG_prop*r3*self.Params.m_prop) / (self.Params.m_dry + r3*self.Params.m_prop)
-            MOI3 = self.Params.MOI_dry + tmp*self.Params.m_dry*(CG3-self.Params.CG_dry)**2. + r3*self.Params.MOI_prop + tmp*(CG3-self.Params.CG_prop)*(r3*self.Params.m_prop)**2.
+            MOI3 = self.Params.MOI_dry + tmp*self.Params.m_dry*(CG3-self.Params.CG_dry)**2. + r3*self.Params.MOI_prop + tmp*(r3*self.Params.m_prop)*(CG3-self.Params.CG_prop)**2.
 
             # dm/dt and d(MOI)/dt
             # d_dt_m = (mass2 - mass3) / (2*h)
