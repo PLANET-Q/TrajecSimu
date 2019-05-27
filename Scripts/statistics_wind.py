@@ -46,58 +46,11 @@ def getAzimuthWindByPlot(U, V, azimuth_rad):
     return np.array([U[idx], V[idx]])
 
 
-def getAzimuthWindByEllipse(
-        center_pos, scale, rotateMatrix,
-        wind_direction, std_wind=np.array([0., 0.])
-        ):
-    # 媒介変数表示による楕円 U(t), V(t)と V = alpha * U (alphaは飛行方位の傾き)の関係から
-    # 方程式を立ててtについて解き、U,V を求める。
-    t = sympy.Symbol('t')
-    x = scale[0] * sympy.cos(t)
-    y = scale[1] * sympy.sin(t)
-    U = rotateMatrix[0, 0] * x + rotateMatrix[0, 1] * y + center_pos[0]
-    V = rotateMatrix[1, 0] * x + rotateMatrix[1, 1] * y + center_pos[1]
-    print('wind direction: ', wind_direction)
-    if np.mod(wind_direction, np.pi) != 0.:
-        alpha = sympy.cot(wind_direction)
-        #print('alpha: ', alpha)
-        expr = (V - std_wind[1]) - alpha * (U - std_wind[0])
-    else:
-        expr = (U - std_wind[0])
-    #print(expr)
-    # expr3 = V - alpha * U
-    t_solutions_tmp = sympy.solve(expr)
-    t_solutions = [float(t_sol) for t_sol in t_solutions_tmp]
-    #print('solutions: ', t_solutions)
-
-    n_solutions = len(t_solutions)
-    wind_tmp = np.zeros((n_solutions, 2))
-    for i, t_solution in enumerate(t_solutions):
-        wind_tmp[i] = [
-                        float(U.subs(t, t_solution)),
-                        float(V.subs(t, t_solution))]
-        #print('U(t=', t_solution, '): ', U.subs(t, t_solution))
-        #print('V(t=', t_solution, '): ', V.subs(t, t_solution))
-
-    az_wind_directions = np.arctan2(
-                            -(wind_tmp.T[0] - std_wind[0]),
-                            -(wind_tmp.T[1] - std_wind[1])
-                            )
-    direction_diff = np.round(az_wind_directions - wind_direction, 2)
-    direction_diff = np.mod(direction_diff, 6.28)
-    #print('direction diff', direction_diff)
-    mask = direction_diff == 0.
-
-    if mask.any():
-        #print('mask wind', wind_tmp[mask])
-        idx = np.argmax(LA.norm(wind_tmp[mask].T, axis=0))
-        azimuth_wind = wind_tmp[mask][idx]
-    else:
-        #print('azimuth wind not found')
-        idx = np.argmin(LA.norm(wind_tmp.T, axis=0))
-        azimuth_wind = wind_tmp[idx]
-
-    return azimuth_wind
+def getAzimuthWind(center_pos, scale_vec, rotateMatrix, wind_direction_rad):
+    unit_vec = np.array([np.sin(wind_direction_rad),
+                         np.cos(wind_direction_rad)])
+    rotated_unit_vec = np.dot(rotateMatrix.T, unit_vec)
+    return np.dot(rotateMatrix, rotated_unit_vec * scale_vec) + center_pos
 
 
 def getProbEllipse(mu, sigma, alpha=0.95, n_plots=100):
@@ -137,12 +90,13 @@ def getStatWindVector(
         mu_stdalt = mu4[alt_index_std][2:]
         sigma_stdalt = sigma4[alt_index_std][2:, 2:]
         scale, M, _ = getEllipseParameters(mu_stdalt, sigma_stdalt, alpha=0.95)
-        wind_std_tmp = getAzimuthWindByEllipse(
-                            mu_stdalt,
-                            scale,
-                            M,
-                            np.deg2rad(wind_direction_deg)
-                            )
+        # wind_std_tmp = getAzimuthWindByEllipse(
+        #                     mu_stdalt,
+        #                     scale,
+        #                     M,
+        #                     np.deg2rad(wind_direction_deg)
+        #                     )
+        wind_std_tmp = getAzimuthWind(mu_stdalt, scale, M, np.deg2rad(wind_direction_deg))
         wind_std = np.broadcast_to(wind_std_tmp, (n_alt, 2))
 
     # ----------------------------
@@ -164,13 +118,18 @@ def getStatWindVector(
 
         scale, M, _ = getEllipseParameters(mu, sigma, alpha=0.95)
         # print('wind direction deg', wind_direction_deg)
-        w = getAzimuthWindByEllipse(
-                            mu + wind_std[h],
-                            scale,
-                            M,
-                            np.deg2rad(wind_direction_deg),
-                            mu + wind_std[h]
-                            )
+        # w = getAzimuthWindByEllipse(
+        #                     mu + wind_std[h],
+        #                     scale,
+        #                     M,
+        #                     np.deg2rad(wind_direction_deg),
+        #                     mu + wind_std[h]
+        #                     )
+        w = getAzimuthWind(
+            mu + wind_std[h],
+            scale,
+            M,
+            np.deg2rad(wind_direction_deg))
 
         stat_wind_u.append(w[0])
         stat_wind_v.append(w[1])
