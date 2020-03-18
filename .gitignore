@@ -6,6 +6,7 @@ results/
 *.eps
 *.ipynb
 *.kml
+env/
 Thrust_curve_csv/*
 Parameters_csv/*
 wind_forecast_csv/*
