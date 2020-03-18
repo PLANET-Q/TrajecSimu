@@ -11,6 +11,8 @@ Might have some problems on Windows/Linux.
 
 ## 使い方
 
+詳細な使用方法は[こちらのページ](https://planet-q.github.io/simu-learning/)にまとめられています．
+
 ### 必要なPythonパッケージ
 - numpy
 - scipy
