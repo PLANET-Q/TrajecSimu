@@ -153,7 +153,8 @@ class Parameters():
         # =============================================
 
         # overwrite param_dict (convert Dataframe -> array -> dict)
-        self.params_dict.update( dict( params_df_userdef.as_matrix() ) )
+        # self.params_dict.update( dict( params_df_userdef.as_matrix() ) )
+        self.params_dict.update( dict( params_df_userdef.values ) )
         # set instance variables from params_dict
         # -----------------------------
         # numerical executive
@@ -332,11 +333,12 @@ class Parameters():
                 elif self.thrust_input_type == 'time_curve':
                     # time and thrust log is given in csv.
                     self.thrust_filename = self.params_dict['thrust_filename'].strip()
+                    print("time curve thrust, thrust file:", self.thrust_filename)
                 else:
                     raise ParameterDefineError(' engine property')
                 # END IF
                 self.curve_fitting = self.params_dict['curve_fitting']
-                if type(self.curve_fitting) == str:
+                if type(self.curve_fitting) is str:
                     self.curve_fitting = strtobool(self.curve_fitting)
                 self.fitting_order = int(self.params_dict['fitting_order'])
             # END IF
