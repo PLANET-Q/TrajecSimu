@@ -614,10 +614,77 @@ class PostProcess_dist():
             self.set_coordinate_izu()
         elif loc == 'izu_sea':
             self.set_coordinate_izu_sea()
+        elif loc == 'noshiro':
+            self.set_coordinate_noshiro_riku()
         elif loc == 'noshiro_sea':
             self.set_coordinate_noshiro()
         else:
             raise ValueError('invalid launch location: '+str(loc))
+
+    # ------------------------------
+    # method for setup landing distribution coordinate
+    # ------------------------------
+    def set_coordinate_noshiro_riku(self):
+        # !!!! hardcoding for noshiro riku
+        # Set limit range in maps (Defined by North latitude and East longitude)
+
+        # -----------------------------------
+        #  Load permitted range from json
+        # -----------------------------------
+        point_range = None
+        point_rail = None
+        with open('location_parameters/noshiro.json', 'r') as f:
+            self.regulations = json.load(f)
+
+        for reg in self.regulations:
+            if reg['name'] == 'rail':
+                point_rail = reg['center']
+            elif reg['name'] == 'range':
+                point_range = np.array(reg['points'])
+
+        if point_range is None:
+            raise ValueError("`range` parameter needed for `noshiro.json`")
+        if point_rail is None:
+            raise ValueError("`rail` parameter needed for `noshiro.json`")
+
+        # -----------------------------------
+        #  Define permitted range
+        # -----------------------------------
+        # NOTE: 2018/10/8 added for bugfix
+        self.lim_radius = 50.0
+
+        # -------- End definition --------
+
+        # Define convert value from lat/long[deg] to meter[m]
+        self.point_rail = point_rail
+        origin = point_rail
+        earth_radius = 6378150.0    # [km]
+        lat2met = 2 * math.pi * earth_radius / 360.0
+        lon2met = 2 * math.pi * earth_radius * np.cos(np.deg2rad(origin[0])) / 360.0
+
+        # Convert from absolute coordinate to relative coordinate
+        point_range = point_range - origin
+
+        # Convert from lat/long to meter (ENU coordinate)
+        self.xy_rail = np.zeros(2)
+        self.xy_switch = np.zeros(2) #FIX
+        self.xy_tent = np.zeros(2)
+        self.xy_range = np.zeros([point_range[:,0].size, 2])
+
+        self.xy_range[:,1] = lat2met * point_range[:,0]
+        self.xy_range[:,0] = lon2met * point_range[:,1]
+
+        # Set magnetic declination
+        mag_dec = -7.53   # [deg] @ Izu
+        mag_dec = np.deg2rad(mag_dec)
+        mat_rot = np.array([[np.cos(mag_dec), -1 * np.sin(mag_dec)],
+                            [np.sin(mag_dec), np.cos(mag_dec)]])
+
+        for i in range(self.xy_range[:,0].size):
+            self.xy_range[i,:] = mat_rot @ self.xy_range[i,:]
+        # END FOR
+
+        return None
 
     # ------------------------------
     # method for setup landing distribution coordinate

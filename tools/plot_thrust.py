@@ -27,7 +27,7 @@ thrust_fit = []
 for filename in filenames:
     # filenameに'*'が含まれる場合マッチするファイルが複数になる
     match_files = glob.glob(filename)
-    
+
     print('--------------------------------')
     print(len(match_files), ' files matched by ' + filename)
     print('--------------------------------')
@@ -39,7 +39,7 @@ for filename in filenames:
         except:
             traceback.print_exc()
             continue
-        
+
         filename_array.append(matchfile)
 
         rawtime = rawdata[:, 0]
@@ -49,14 +49,14 @@ for filename in filenames:
         print('n_samples=', n_samples, ', ', end='')
         thrust_raw.append(rawthrust)
         time_array.append(rawtime)
-        
+
         if args.sampling_dt is None:
             thrust_dt = rawtime[1] - rawtime[0]
         else:
             thrust_dt = float(args.t)
-        
+
         print('dt=', thrust_dt, '[s], ', end='')
-        
+
         if args.lpf_freq is not None:
             f_cutoff = int(args.lpf_freq)
             tf = fftpack.fft(rawthrust)
@@ -65,13 +65,13 @@ for filename in filenames:
             tf2[np.abs(freq) > f_cutoff] = 0
             lpf = np.real(fftpack.ifft(tf2))
             thrust_lpf.append(lpf)
-        
+
         if args.fitting_order is not None:
             fit = np.polyfit(rawtime, rawthrust, int(args.fitting_order))
             func = np.poly1d(fit)
 
             thrust_fit.append(func(rawtime))
-        
+
         print('')
 
 
@@ -80,11 +80,12 @@ for i in range(len(thrust_raw)):
     plt.plot(time_array[i], thrust_raw[i], label='raw')
     if args.lpf_freq is not None:
         plt.plot(time_array[i], thrust_lpf[i], label='LPF')
-    
+
     if args.fitting_order is not None:
         plt.plot(time_array[i], thrust_fit[i], label='Fitted')
-    
+
+    plt.grid()
     plt.legend()
     plt.title(filename_array[i])
-    
+
 plt.show()

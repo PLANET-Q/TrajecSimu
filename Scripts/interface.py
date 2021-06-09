@@ -165,19 +165,13 @@ class TrajecSimu_UI():
         self.loc_bal[:,-1,:] = self.loc_bal[:,0,:]
         self.loc_para[:,-1,:] = self.loc_para[:,0,:]
 
-        """ # dummy landing points for degub
-        tmpx = np.array([ [0., 100., 200., 100. ,0],  [0., 200., 400., 200. ,0], [0., 50., 100., 50. ,0] ] )
-        tmpy = np.array([ [0., 100., 0., -100. ,0],   [0., 200., 0., -200. ,0],  [0., 50., 0., -50. ,0] ])
-        self.loc_bal = np.dstack( (tmpx, tmpy) )
-        self.loc_para = np.dstack( (tmpx, tmpy) )
-        """
 
         if self.myrocket.Params.params_dict['wind_model'] == 'power-es-hybrid':
             wind_direction_original = self.myrocket.Params.params_dict['wind_direction_original']
             output_dir = os.path.join('./results/', 'power-es-hybrid/', output_rootdir, str(wind_direction_original) +'deg/')
         else:
             output_dir = os.path.join('./results/', self.myrocket.Params.params_dict['wind_model'] + '/', output_rootdir)
-        
+
         # create directory for results
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -248,6 +242,16 @@ class TrajecSimu_UI():
             permitted_area_for_bal['range']          = post_dist.xy_range
             permitted_area_for_bal['outside_centers']= tmp_centers
             permitted_area_for_bal['outside_radius'] = post_dist.lim_radius
+
+        elif self.launch_location == 'noshiro':
+            # premitted range for Noshiro (2018)
+            permitted_area_for_para['range']         = post_dist.xy_range
+            permitted_area_for_para['outside_centers']= tmp_centers
+            permitted_area_for_para['outside_radius'] = post_dist.lim_radius
+            permitted_area_for_bal['range']          = post_dist.xy_range
+            permitted_area_for_bal['outside_centers']= tmp_centers
+            permitted_area_for_bal['outside_radius'] = post_dist.lim_radius
+
         else:
             raise NotImplementedError('The launch site is not implemented. "Noshiro_sea" or "izu" or "izu_sea" are currently available')
         # END IF

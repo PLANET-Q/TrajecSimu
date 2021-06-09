@@ -472,9 +472,12 @@ class Parameters():
                 tf2[np.abs(freq) > fs] = 0
                 # inverse FFT
                 self.thrust_array = np.real(fftpack.ifft(tf2))
-                self.time_array = self.time_array[self.thrust_array >= 0.01*np.max(self.thrust_array)]
+
+                roi_mask = self.thrust_array >= (0.01*np.max(self.thrust_array))
+                self.time_array = self.time_array[roi_mask]
                 self.time_array -= self.time_array[0]
-                self.thrust_array = self.thrust_array[self.thrust_array >= 0.01*np.max(self.thrust_array)]
+                self.thrust_array = self.thrust_array[roi_mask]
+                self.thrust_array[self.thrust_array < 0] = 0
             # END IF
 
             # -------------------
@@ -482,12 +485,12 @@ class Parameters():
             # -------------------
             if self.curve_fitting:
                 # curve fitting
-                n_fit = self.fitting_order  # order of fitting
+                n_fit = int(self.fitting_order)  # order of fitting
                 a_fit = np.polyfit(self.time_array, self.thrust_array, n_fit)
                 # define polynomial that returns thrust for a given time (fitted thrust curve)
                 self.thrust_function = np.poly1d(a_fit)
                 # total impulse for fitting function
-                time_for_poly = np.linspace(self.time_array[0], self.time_array[-1], 1e4)
+                time_for_poly = np.linspace(self.time_array[0], self.time_array[-1], 10000)
                 thrust_poly = self.thrust_function(time_for_poly)   # polynomially fitted thrust curve
                 thrust_poly[thrust_poly<0.] = 0.                      # overwrite negative value with 0
                 Impulse_total_poly = integrate.trapz(thrust_poly, time_for_poly)
